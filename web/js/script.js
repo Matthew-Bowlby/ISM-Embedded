@@ -22,10 +22,14 @@ function toggleOverlay() {
 // Close the overlay when clicking anywhere on it
 document.getElementById('overlay').addEventListener('click', function (event) {
     if (event.target === this) {
-        toggleOverlay();
+        sleepEvent();
     }
 });
-
+document.getElementById('sleep-overlay').addEventListener('click', function (event) {
+    if (event.target === this) {
+        wakeEvent();
+    }
+});
 eel.expose(loginEvent)
 function loginEvent() {
 
@@ -44,6 +48,6 @@ eel.expose(wakeEvent)
 function wakeEvent() {
     var timeoverlay = document.getElementById('overlay');
     var sleepoverlay = document.getElementById('sleep-overlay');
-    timeoverlay.classList.add('show');
     sleepoverlay.classList.remove('show');
+    timeoverlay.classList.add('show');
 }
