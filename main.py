@@ -4,15 +4,15 @@ import sqlite3
 import sys
 import json
 
-light_pin=19
-motion_pin=12
+light_pin = 19
+motion_pin = 12
 eel.init("web")
 login_status = False
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(motion_pin, GPIO.IN)
-GPIO.setup(light_pin,GPIO.OUT) 
-light_control = GPIO.PWM(light_pin,100)
-light_control.start(0)
+GPIO.setup(light_pin, GPIO.OUT)
+
+
 
 try:
     sqliteConnector = sqlite3.connect("user_data.db")
@@ -29,13 +29,14 @@ except sqlite3.Error as error:
     print(f"Error occured: {error}")
     sys.exit(1)
 
+
 def runFacialRecognition():
     global login_status
     name = "JP"
-    cnt=cursor.execute(f"SELECT * from user_data WHERE NAME='{name}'")
-   
+    cnt = cursor.execute(f"SELECT * from user_data WHERE NAME='{name}'")
+
     columns = [column[0] for column in cnt.description]
-    out=cnt.fetchone()
+    out = cnt.fetchone()
 
     json_data = []
     row_data = {}
@@ -45,21 +46,41 @@ def runFacialRecognition():
     json_output = json.dumps(json_data)
     eel.loginEvent(json_output)
 
-    login_status=True
+    login_status = True
+
+def turn_on():
+  GPIO.output(light_pin,GPIO.HIGH)
+
+def turn_off():
+   GPIO.output(light_pin,GPIO.LOW)
 
 def turnOnLights():
-    for x in range(50):
-        light_control.ChangeDutyCycle(x)
-        eel.sleep(.1)
+    freq = 120 # for 120 hz
+    duty = 0 # 1% of the period, the voltage must be high.
+
+    period = 1/freq
+
+    # so the the duration for which the voltage will be high
+    high_period = period * duty/100 # percentange of period the signal is high
+    low_period = period - high_period
+
+    while True:
+        try:
+            turn_on()
+            eel.sleep(high_period)
+            turn_off()
+            eel.sleep(low_period)
+        except KeyboardInterrupt:
+            break
+
 
 def turnOffLights():
-    for x in range(50):
-        light_control.ChangeDutyCycle(50-x)
-        eel.sleep(.1)
+    turn_off()
+
 
 def screenControl():
-    prev_val=None
-    timeout_count=0
+    prev_val = None
+    timeout_count = 0
     try:
         while True:
 
@@ -72,7 +93,7 @@ def screenControl():
                         eel.spawn(turnOnLights)
                         eel.spawn(runFacialRecognition)
                     else:
-                        timeout_count=0
+                        timeout_count = 0
 
                 else:
                     if not login_status:
@@ -80,19 +101,18 @@ def screenControl():
                         eel.spawn(turnOffLights)
             elif val == GPIO.LOW:
                 if login_status:
-                    timeout_count +=1
-                if timeout_count ==60:
+                    timeout_count += 1
+                if timeout_count == 60:
                     eel.sleepEvent()
-                    login_status=False
+                    login_status = False
                     eel.spawn(turnOffLights)
 
-            prev_val=val
+            prev_val = val
             eel.sleep(1)
     finally:
         GPIO.cleanup()
-         
+
 
 eel.spawn(screenControl)
 
 eel.start("index.html", cmdline_args=["--kiosk"])
-
