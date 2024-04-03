@@ -7,12 +7,13 @@ import json
 light_pin = 19
 motion_pin = 12
 eel.init("web")
+
 login_status = False
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(motion_pin, GPIO.IN)
 GPIO.setup(light_pin, GPIO.OUT)
 
-
+print("setup pins")
 
 try:
     sqliteConnector = sqlite3.connect("user_data.db")
@@ -28,7 +29,7 @@ try:
 except sqlite3.Error as error:
     print(f"Error occured: {error}")
     sys.exit(1)
-
+print("setup db")
 
 def runFacialRecognition():
     global login_status
@@ -79,6 +80,7 @@ def turnOffLights():
 
 
 def screenControl():
+    global login_status
     prev_val = None
     timeout_count = 0
     try:
@@ -91,7 +93,7 @@ def screenControl():
                         print("Motion detected!")
                         eel.wakeEvent()
                         eel.spawn(turnOnLights)
-                        eel.spawn(runFacialRecognition)
+                        #eel.spawn(runFacialRecognition)
                     else:
                         timeout_count = 0
 
@@ -113,6 +115,7 @@ def screenControl():
         GPIO.cleanup()
 
 
-eel.spawn(screenControl)
+#eel.spawn(screenControl)
+print("starting")
 
 eel.start("index.html", cmdline_args=["--kiosk"])
