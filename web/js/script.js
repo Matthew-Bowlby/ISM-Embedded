@@ -31,8 +31,15 @@ document.getElementById('sleep-overlay').addEventListener('click', function (eve
     }
 });
 eel.expose(loginEvent)
-function loginEvent() {
+function loginEvent(userData) {
+    var timeoverlay = document.getElementById('overlay');
+    var sleepoverlay = document.getElementById('sleep-overlay');
+    timeoverlay.classList.remove('show'); 
+    sleepoverlay.classList.remove('show');
+    const obj = JSON.parse(userData)
 
+    document.getElementById('greeting_header').innerText = "Welcome, "+ obj[0].NAME;
+    document.getElementById('temp').innerText = obj[0].TEMP+"°";
 }
 
 eel.expose(sleepEvent)
