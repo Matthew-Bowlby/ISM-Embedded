@@ -3,9 +3,12 @@ import RPi.GPIO as GPIO
 import sqlite3
 import sys
 import json
+import numpy as np
 
 light_pin = 19
 motion_pin = 12
+current_duty=0
+target_duty =0
 eel.init("web")
 
 login_status = False
@@ -22,7 +25,9 @@ try:
     cursor.execute(
         """CREATE TABLE IF NOT EXISTS user_data(
             NAME TEXT NOT NULL,
-            TEMP REAL                
+            TEMP REAL,
+            VANITY INTEGER
+                            
 
     );"""
     )
@@ -30,6 +35,7 @@ except sqlite3.Error as error:
     print(f"Error occured: {error}")
     sys.exit(1)
 print("setup db")
+
 
 def runFacialRecognition():
     global login_status
@@ -49,20 +55,33 @@ def runFacialRecognition():
 
     login_status = True
 
+
 def turn_on():
-  GPIO.output(light_pin,GPIO.HIGH)
+    GPIO.output(light_pin, GPIO.HIGH)
+
 
 def turn_off():
-   GPIO.output(light_pin,GPIO.LOW)
+    GPIO.output(light_pin, GPIO.LOW)
 
+def lightScale(dir):
+    global target_duty
+    global current_duty
+
+    if dir:
+        for x in np.linspace(current_duty, target_duty, 50, dtype=int):
+            current_duty = x
+    else:
+        for x in np.linspace(target_duty, current_duty, 50, dtype=int):
+            current_duty = x
 def turnOnLights():
-    freq = 120 # for 120 hz
-    duty = 0 # 1% of the period, the voltage must be high.
+    global current_duty
+    freq = 120  # for 120 hz
+    current_duty = 0  # 1% of the period, the voltage must be high.
 
-    period = 1/freq
+    period = 1 / freq
 
     # so the the duration for which the voltage will be high
-    high_period = period * duty/100 # percentange of period the signal is high
+    high_period = period * current_duty / 100  # percentange of period the signal is high
     low_period = period - high_period
 
     while True:
@@ -76,11 +95,30 @@ def turnOnLights():
 
 
 def turnOffLights():
+    freq = 120  # for 120 hz
+    global current_duty
+
+    period = 1 / freq
+
+    # so the the duration for which the voltage will be high
+    high_period = period * current_duty / 100  # percentange of period the signal is high
+    low_period = period - high_period
+
+    while current_duty>0:
+        try:
+            turn_on()
+            eel.sleep(high_period)
+            turn_off()
+            eel.sleep(low_period)
+        except KeyboardInterrupt:
+            break
     turn_off()
 
 
 def screenControl():
     global login_status
+    lightControl=None
+    frControl=None
     prev_val = None
     timeout_count = 0
     try:
@@ -92,22 +130,25 @@ def screenControl():
                     if not login_status:
                         print("Motion detected!")
                         eel.wakeEvent()
-                        eel.spawn(turnOnLights)
-                        #eel.spawn(runFacialRecognition)
+                        lightControl= eel.spawn(turnOnLights)
+                        frControl=eel.spawn(runFacialRecognition)
                     else:
                         timeout_count = 0
 
                 else:
                     if not login_status:
                         eel.sleepEvent()
+                        lightControl.kill()
+                        frControl.kill()
                         eel.spawn(turnOffLights)
             elif val == GPIO.LOW:
                 if login_status:
                     timeout_count += 1
-                if timeout_count == 60:
-                    eel.sleepEvent()
-                    login_status = False
-                    eel.spawn(turnOffLights)
+                    if timeout_count == 60:
+                        eel.sleepEvent()
+                        login_status = False
+                        timeout_count = 0
+                        eel.spawn(turnOffLights)
 
             prev_val = val
             eel.sleep(1)
@@ -115,7 +156,7 @@ def screenControl():
         GPIO.cleanup()
 
 
-#eel.spawn(screenControl)
+eel.spawn(screenControl)
 print("starting")
 
 eel.start("index.html", cmdline_args=["--kiosk"])
