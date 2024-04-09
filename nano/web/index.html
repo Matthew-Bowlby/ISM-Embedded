@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testing</title>
+
+    <link rel="stylesheet" href="bootstrap/bootstrap.css">
+    <style>
+        body {
+            height: 100%;
+        }
+
+        .full-height {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+         /* Style for the overlay */
+         #sleep-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0);
+            /* Initially transparent */
+            z-index: 9999;
+            /* Ensure it appears above everything */
+            display: none;
+            /* Initially hidden */
+            transition: background-color 0.3s ease;
+            /* Transition for the background color */
+        }
+
+        /* Style for the overlay when visible */
+        #sleep-overlay.show {
+            background-color: rgb(0, 0, 0);
+            /* Semi-transparent black */
+            display: block;
+        }
+
+        /* Centered content within the overlay */
+        #sleep-overlay-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+        }
+
+        /* Style for the overlay */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0);
+            /* Initially transparent */
+            z-index: 9999;
+            /* Ensure it appears above everything */
+            display: none;
+            /* Initially hidden */
+            transition: background-color 0.3s ease;
+            /* Transition for the background color */
+        }
+
+        /* Style for the overlay when visible */
+        #overlay.show {
+            background-color: rgb(0, 0, 0);
+            /* Semi-transparent black */
+            display: block;
+        }
+
+        /* Centered content within the overlay */
+        #overlay-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="overlay">
+        <div id="overlay-content">
+            <div class="row">
+                <div class="col text-center">
+                    <h1 id="time">00:00</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="sleep-overlay" class="show">
+        <div id="sleep-overlay-content">
+            <div class="row">
+            </div>
+        </div>
+    </div>
+   
+    <div class="container-fluid pt-3">
+        <h1 class="display-1" id="greeting_header">Good Morning, FN</h1>
+    </div>
+    <div class="container pt-5">
+        <br>
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="card" style="width: fit-content;">
+                    <div class="card-body">
+                        <h1 class="card-title">
+                            Knoxville Weather
+                        </h1>
+                        <p id="temp" class="card-text">74°</p>
+                    </div>
+                </div>
+                <br>
+                <div class="card" style="width: fit-content;">
+                    <div class="card-body">
+                        <h1 class="card-title text-center">
+                            Tennessee Volunteers Basketball
+                        </h1>
+                        <div class="row">
+                            <div class="col-lg-5">
+                                <p class="text-end">Tennessee</p>
+                            </div>
+                            <div class="col-lg-2"></div>
+                            <div class="col-lg-5">
+                                <p class="text-start">The World</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-5">
+                                <p class="text-end">100</p>
+                            </div>
+                            <div class="col-lg-2">
+                                <p class="text-center">-</p>
+                            </div>
+                            <div class="col-lg-5">
+                                <p class="text-start">10</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <div class="card" style="width: fit-content;">
+                    <div class="card-body">
+                        <h1 class="card-title">
+                            Knoxville Weather
+                        </h1>
+                        <p class="card-text">74°</p>
+                        <button onclick="toggleOverlay()">Toggle</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="container">
+                    <h1 class="display-3 text-center">Upcoming Events</h1>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="card" style="width: fit-content;">
+                    <div class="card-body">
+                        <h1 class="card-title text-center">
+                            Fitness Updates
+                        </h1>
+                        <p class="card-text">10000 Steps</p>
+                        <p class="card-text">Burned: 100kcal</p>
+                    </div>
+                </div>
+                <br>
+                <div class="card" style="width: fit-content;">
+                    <div class="card-body">
+                        <h1 class="card-title">
+                            Knoxville Weather
+                        </h1>
+                        <p class="card-text">74°</p>
+                    </div>
+                </div>
+                <br>
+                <div class="card" style="width:fit-content;">
+                    <div class="card-body">
+                        <h1 class="card-title">
+                            Knoxville Weather
+                        </h1>
+                        <p class="card-text">74°</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- <div class="d-flex justify-content-center align-items-center" style="height:100%;">
+        <h1 id="time">00:00</h1>
+         <button type="button" class="btn btn-info">Button</button> 
+    </div> -->
+
+
+
+
+    <script src="eel.js"></script>
+    <script src="jquery/jquery-3.7.1.js"></script>
+    <script src="bootstrap/bootstrap.js"></script>
+    <script src="js/script.js"></script>
+</body>
+
+</html>
