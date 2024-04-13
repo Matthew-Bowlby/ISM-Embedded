@@ -3,7 +3,7 @@
 #include <BLEServer.h>
 #include <Arduino.h>
 #include <Wire.h>
-#include <json.hpp>
+#include "include/json.hpp"
 #include <unordered_map>
 #include <string>
 #include <cstdlib>
@@ -26,6 +26,8 @@ string tag;
 string data;
 json current_user;
 string request;
+int sensorValue;
+unsigned long time2;
 
 void requestEvents();
 void receiveEvents(int);
@@ -157,6 +159,13 @@ void setup()
  // const char* sensor_program_command = "/path/to/your/sensor_program";
   Serial.begin(115200);
 
+  pinMode(34, INPUT);
+  pinMode(32, OUTPUT);
+  pinMode(27, OUTPUT);
+
+  digitalWrite(32, HIGH);
+  digitalWrite(27, LOW);
+
   BLEDevice::init("ESP32-BLE-Server");
   pServ = BLEDevice::createServer();
   pService = pServ->createService(SERVICE_UUID);
@@ -184,19 +193,8 @@ void setup()
 void loop()
 {
 
-  /* if (theServer->getConnectedCount() < num_devices)
-   {
-     Serial.print("*********\n");
-     Serial.print("A device has connected.");
-     Serial.print("*********\n");
-   }
-   if (theServer->getConnectedCount() > num_devices)
-   {
-     Serial.print("*********\n");
-     Serial.print("A device has disconnected.");
-     Serial.print("*********\n");
-   }*/
-  delay(2000);
+
+  delay(1000);
   num_devices = pServ->getConnectedCount();
   //Serial.printf("%d\n", num_devices);
   if (num_devices == 0) 
@@ -206,7 +204,35 @@ void loop()
 
 
   }
+
+  if (digitalRead(34) == HIGH)
+  {
+    Serial.printf("-- %lu -- Motion Deteced!\n ", (millis() / 1000));
+    digitalWrite(32, HIGH);
+  }
+  else
+  {
+    digitalWrite(32, LOW);
+    Serial.printf("------\n");
+  }
+  time2 = millis();
+  time2 = time2/1000;
+  if (time2 % 30 == 0 && time != 0){
+    digitalWrite(27,HIGH);
+    
+  } 
+  
+  sensorValue = analogRead(25);
+
+  // Convert the analog value to voltage (assuming 3.3V reference)
+  float voltage = sensorValue * (3.3 / 4095.0);
+
+  // Convert voltage to temperature using LM35 formula (10mV per degree F)
+  float temperatureF = voltage * 100.0; // 10mV per degree Celsius
 }
+
+
+
 void requestEvents() {
   string data2;
   char byte;
