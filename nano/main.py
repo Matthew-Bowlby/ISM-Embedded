@@ -29,6 +29,7 @@ print("setup db")
 
 def runFacialRecognition():
     global login_status
+    eel.sleep(30)
     # run facial rec and return user #
     user = 1
     userinfo=db.getUserData(1)
@@ -68,13 +69,13 @@ def screenControl():
             val = GPIO.input(motion_pin)
             if val != prev_val:
                 if val == GPIO.HIGH:
-                    if not login_status:
+                    timeout_count = 0
+                    if not login_status and frControl == None:
                         print("Motion detected!")
                         eel.wakeEvent()
                         eel.spawn(turn_on)
                         #frControl = eel.spawn(runFacialRecognition)
-                    else:
-                        timeout_count = 0
+                                         
                        
             elif val == GPIO.LOW:
                 timeout_count += 1
@@ -88,16 +89,17 @@ def screenControl():
                     if timeout_count == 10:
                         eel.sleepEvent()
                         eel.spawn(turn_off)
-                        frControl.kill()
+                        #frControl.kill()
 
             prev_val = val
             eel.sleep(1)
     finally:
         GPIO.cleanup()
 
-target_duty=DB.getUserVanity(0)
+target_duty=db.getUserVanity(0)
 light_pwm.start(duty)
 eel.spawn(screenControl)
+#eel.spawn(runFacialRecognition)
 print("starting")
 
 eel.start("index.html", cmdline_args=["--kiosk"])

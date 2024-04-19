@@ -46,5 +46,5 @@ class DB:
 
     def getUserVanity(self,id):
         out = self.cursor.execute(f"SELECT VANITY from user_data WHERE ID={id}").fetchone()
-        return out
+        return out[0]
 
