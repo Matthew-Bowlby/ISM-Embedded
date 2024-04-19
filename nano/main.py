@@ -99,7 +99,7 @@ def screenControl():
 target_duty=db.getUserVanity(0)
 light_pwm.start(duty)
 eel.spawn(screenControl)
-eel.spawn(runFacialRecognition)
+#eel.spawn(runFacialRecognition)
 print("starting")
 
 eel.start("index.html", cmdline_args=["--kiosk"])
