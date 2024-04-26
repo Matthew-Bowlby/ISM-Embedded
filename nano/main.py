@@ -3,9 +3,12 @@ import RPi.GPIO as GPIO
 import sys
 import json
 import numpy as np
-from database import DB
+from subsystems.database import DB
+from subsystems.nfr6 import FaceRecognition
+from subsystems.i2c import I2C
 light_pin = 32
 motion_pin = 40
+recieve_sig=20
 target_duty=0
 duty = 0
 
@@ -15,12 +18,13 @@ login_status = False
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(motion_pin, GPIO.IN)
 GPIO.setup(light_pin, GPIO.OUT)
+GPIO.setup(recieve_sig, GPIO.IN)
 
 light_pwm = GPIO.PWM(light_pin, 150)
 
-
+fr = FaceRecognition()
 db = DB()
-
+i2c = I2C(recieve_sig,eel)
 print("setup pins")
 
 
@@ -30,13 +34,15 @@ print("setup db")
 def runFacialRecognition():
     global login_status
     eel.sleep(30)
+    user=fr.run_recognition()
     # run facial rec and return user #
-    user = 1
-    userinfo=db.getUserData(1)
-    
-    eel.loginEvent(userinfo)
+    # user = 1
+    if user != None:
+        userinfo=db.getUserData(1)
+        
+        eel.loginEvent(userinfo)
 
-    login_status = True
+        login_status = True
 
 
 def turn_on():
@@ -74,7 +80,7 @@ def screenControl():
                         print("Motion detected!")
                         eel.wakeEvent()
                         eel.spawn(turn_on)
-                        #frControl = eel.spawn(runFacialRecognition)
+                        frControl = eel.spawn(runFacialRecognition)
                                          
                        
             elif val == GPIO.LOW:
@@ -89,16 +95,23 @@ def screenControl():
                     if timeout_count == 10:
                         eel.sleepEvent()
                         eel.spawn(turn_off)
-                        #frControl.kill()
+                        if not frControl.dead:
+                            fr.stop_recognition()
 
             prev_val = val
             eel.sleep(1)
     finally:
         GPIO.cleanup()
 
+
+def updateValues():
+    data=i2c.run()
+    db.updateUserData(0,data[0],data[2],data[3])
+
 target_duty=db.getUserVanity(0)
 light_pwm.start(duty)
 eel.spawn(screenControl)
+GPIO.add_event_detect(recieve_sig, GPIO.rising, callback=updateValues)
 #eel.spawn(runFacialRecognition)
 print("starting")
 
