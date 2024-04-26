@@ -24,7 +24,7 @@ class I2C():
                 BytesToSend = self.ConvertStringToBytes(self.info[piece])
                 print(BytesToSend)
                 I2Cbus.write_i2c_block_data(self.I2C_ADDR, 0x00, BytesToSend)
-                time.sleep(0.5)
+                self.eel.sleep(0.5)
                 try:
                     data = I2Cbus.read_i2c_block_data(self.I2C_ADDR, 0x20, 32)
                     print("receive from slave:")
@@ -39,7 +39,6 @@ class I2C():
         return data_array
 
     def setup(self):
-        GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.receive_sig, GPIO.IN)
         # I2Cbus = smbus.SMBus(1)
         
