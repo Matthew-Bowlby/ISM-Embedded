@@ -1,3 +1,5 @@
 .venv/
 *.db
 delete*
+*.jpg
+__py*
