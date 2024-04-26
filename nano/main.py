@@ -39,6 +39,7 @@ def runFacialRecognition():
     # run facial rec and return user #
     # user = 1
     if user != None:
+
         userinfo=db.getUserData(1)
         
         eel.loginEvent(userinfo)

@@ -57,10 +57,6 @@ class FaceRecognition():
                     if max(scores) >= cosine_sim:
                         user = np.argmax(scores)
                         print(f"User recognizer {user}")
-                        break
-        self.cap.release()            
-        return user                
-
-
-    
-    
+                        self.cap.release()
+                        return user
+        return None
