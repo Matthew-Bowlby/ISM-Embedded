@@ -108,7 +108,7 @@ def screenControl():
 
 def updateValues():
     data=i2c.run()
-    db.updateUserData(0,data[0],data[2],data[3])
+    db.updateUserData(1,data[0],data[2],data[3])
 
 target_duty=db.getUserVanity(0)
 light_pwm.start(duty)

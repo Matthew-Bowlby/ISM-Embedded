@@ -19,10 +19,28 @@ class DB:
 
             );"""
             )
+            cursor.execute("SELECT * FROM user_data WHERE id = 0")
+            existing_entry = cursor.fetchone()
+
+            if existing_entry is None:
+                # ID 0 does not exist, so insert the new entry
+                new_entry = (0, 'Default',100,75)  # Replace 'Your data here' with your actual data
+                cursor.execute("INSERT INTO user_data(ID,NAME,TEMP,VANITY) VALUES (?, ?,?,?)", new_entry)
+            
+            cursor.execute("SELECT * FROM user_data WHERE id = 1")
+            existing_entry = cursor.fetchone(
+            
+            if existing_entry is None:    
+                new_entry = (1, 'Elijah',100,75)  # Replace 'Your data here' with your actual data
+                cursor.execute("INSERT INTO user_data(ID,NAME,TEMP,VANITY) VALUES (?, ?,?,?)", new_entry)
+        
+            
+            sqliteConnection.commit()
             self.fields = ["NAME", "TEMP", "VANITY"]
         except sqlite3.Error as error:
             print(f"Error occured: {error}")
             sys.exit(1)
+    #def addUser(self,name):
 
     def getUserData(self, id):
         cnt = self.cursor.execute(f"SELECT * from user_data WHERE ID='{id}'")
