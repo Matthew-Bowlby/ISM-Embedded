@@ -7,7 +7,7 @@ class I2C():
     def __init__(self,recieve_sig,eel):
         self.I2C_ADDR = 0x18
         self.receive_sig = recieve_sig # change as needed
-        self.info = ["name", "indoor_tmp", "outdoor_tmp", "heartrate"]
+        self.info = ["name", "TempF", "Condi", "UVInd", "Humid", "CaloB", "StepC", "DistW", "Heart"]
         self.eel = eel
         self.setup()
 
@@ -30,7 +30,7 @@ class I2C():
                     print("receive from slave:")
                     print(data)
                     # place data in database
-                    data_array[piece]=data
+                    #data_array[piece]=data
                     self.eel.sleep(2.0)
                 except:
                     print("remote i/o error")
@@ -40,7 +40,7 @@ class I2C():
 
     def setup(self):
         GPIO.setup(self.receive_sig, GPIO.IN)
-        # I2Cbus = smbus.SMBus(1)
+        I2Cbus = smbus.SMBus(1)
         
 
 # if __name__ == '__main__':

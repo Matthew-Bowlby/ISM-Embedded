@@ -6,16 +6,23 @@ import json
 class DB:
     def __init__(self):
         try:
-            sqliteConnector = sqlite3.connect("user_data.db")
-            self.cursor = sqliteConnector.cursor()
+            self.sqliteConnector = sqlite3.connect("user_data.db")
+            self.cursor = self.sqliteConnector.cursor()
 
             self.cursor.execute(
                 """CREATE TABLE IF NOT EXISTS user_data(
                 ID INTEGER PRIMARY KEY,
             NAME TEXT NOT NULL,
             TEMP REAL,
-            VANITY INTEGER
-                            
+            VANITY INTEGER,
+                CONDITION TEXT
+            UV_INDEX REAL,
+            HUMIDITY REAL,
+            CALORIES REAL,
+            STEPS INTEGER,
+            DISTANCE_WALKED REAL,
+            HEART REAL,
+            LASTUPDATE REAL
 
             );"""
             )
@@ -50,7 +57,7 @@ class DB:
                     new_entry,
                 )
 
-            sqliteConnector.commit()
+            self.sqliteConnector.commit()
             self.fields = ["NAME", "TEMP", "VANITY"]
         except sqlite3.Error as error:
             print(f"Error occured: {error}")
@@ -79,6 +86,7 @@ class DB:
             self.cursor.execute(
                 f"UPDATE Book SET {self.fields[field]}='{updates[field]}' WHERE ID={id};"
             )
+        self.sqliteConnector.commit()
 
     def getUserVanity(self, id):
         out = self.cursor.execute(
