@@ -3,11 +3,10 @@
 #include <BLEServer.h>
 #include <Arduino.h>
 #include <Wire.h>
-#include "include/json.hpp"
+#include "../include/json.hpp"
 #include <unordered_map>
 #include <string>
 #include <cstdlib>
-
 
 #define I2C_ADDR 0x18
 
@@ -32,13 +31,20 @@ unsigned long time2;
 void requestEvents();
 void receiveEvents(int);
 
-
-json createUser(string name){
-// create empty json and store username
-json j;
-j["name"] = name;
-return j;
-
+json createUser(string name)
+{
+  // create empty json and store username
+  json j;
+  j["name"] = name;
+  j["TempF"] = "";
+  j["Condi"] = "";
+  j["UVInd"] = "";
+  j["Humid"] = "";
+  j["CaloB"] = "";
+  j["StepC"] = "";
+  j["DistW"] = "";
+  j["Heart"] = "";
+  return j;
 }
 /*
 void storeData(json user, string userdata){
@@ -56,7 +62,7 @@ Serial.printf("data stored -> ");
         Serial.print(test[i]);
       }
 Serial.printf("end\n");
-} */  
+} */
 /*
 class Users
 {
@@ -124,7 +130,7 @@ class MyCallbacks : public BLECharacteristicCallbacks
     if (value.length() > 0)
     {
       // Serial.print("*********");
-      //Serial.print("New value: ");
+      // Serial.print("New value: ");
       for (int i = 0; i < value.length(); i++)
       {
         Serial.print(value[i]);
@@ -133,32 +139,33 @@ class MyCallbacks : public BLECharacteristicCallbacks
       Serial.println();
       // Serial.println("*********");
     }
-    if (value == "Connected"){
-     current_user = createUser("User1");
+    if (value == "Connected")
+    {
 
-     Serial.printf("created user\n");
+      Serial.printf("created user\n");
     }
-    else{
-    string test;
-    
-    int pos = value.find(":");
-    tag = value.substr(0,pos);
-    data = value.substr(pos + 1, value.length());
-    current_user[tag]= data;
-      
-     // Serial.printf("Test Data -%s-\n", current_user[tag]);
-    //  test = current_user[tag];
-    //  Serial.printf(" ---Test This %s- %s---\n", tag.c_str(), test.c_str());
-    }
+    else
+    {
+      string test, test2;
 
+      int pos = value.find(":");
+      tag = value.substr(0, pos);
+      data = value.substr(pos + 2, value.length());
+      current_user[tag] = data;
+      test = current_user[tag];
+
+      Serial.printf("Test Data -%s-, -%s- \n", test.c_str(), tag.c_str());
+      //  test = current_user[tag];
+      //  Serial.printf(" ---Test This %s- %s---\n", tag.c_str(), test.c_str());
+    }
   }
 };
 
 void setup()
 {
- // const char* sensor_program_command = "/path/to/your/sensor_program";
+  // const char* sensor_program_command = "/path/to/your/sensor_program";
   Serial.begin(115200);
-
+  current_user = createUser("User1");
   pinMode(34, INPUT);
   pinMode(32, OUTPUT);
   pinMode(27, OUTPUT);
@@ -182,27 +189,38 @@ void setup()
 
   pAdv = pServ->getAdvertising();
   pAdv->start();
-  
-   Wire.begin(I2C_ADDR);
+
+  Wire.begin(I2C_ADDR);
   Wire.onRequest(requestEvents);
   Wire.onReceive(receiveEvents);
   request = "";
-
 }
 
 void loop()
 {
+  string test1;
 
+  test1 = current_user["Heart"];
+
+  if (test1 != "")
+  {
+    Serial.printf("DATA PIN HIGH\n");
+    // Serial.printf("test here %s\n", test1.c_str());
+    digitalWrite(27, HIGH);
+  }
+  else
+  {
+
+    digitalWrite(27, LOW);
+  }
 
   delay(1000);
   num_devices = pServ->getConnectedCount();
-  //Serial.printf("%d\n", num_devices);
-  if (num_devices == 0) 
+  // Serial.printf("%d\n", num_devices);
+  if (num_devices == 0)
   {
     pAdv->stop();
     pAdv->start();
-
-
   }
 
   if (digitalRead(34) == HIGH)
@@ -216,12 +234,8 @@ void loop()
     Serial.printf("------\n");
   }
   time2 = millis();
-  time2 = time2/1000;
-  if (time2 % 30 == 0 && time != 0){
-    digitalWrite(27,HIGH);
-    
-  } 
-  
+  time2 = time2 / 1000;
+
   sensorValue = analogRead(25);
 
   // Convert the analog value to voltage (assuming 3.3V reference)
@@ -229,27 +243,42 @@ void loop()
 
   // Convert voltage to temperature using LM35 formula (10mV per degree F)
   float temperatureF = voltage * 100.0; // 10mV per degree Celsius
+                                        // Serial.printf("RoomTemp - %f\n");
 }
 
-
-
-void requestEvents() {
+void requestEvents()
+{
   string data2;
   char byte;
-
+  Serial.printf("IN REQUEST\n");
   data2 = current_user[request];
-  
-  for(int i = 0; i < data2.length(); i++){
-       Wire.write(data2[i]);
-  }
 
+  for (int i = 0; i < data2.length(); i++)
+  {
+    Serial.printf(" -%d-",i);
+    Wire.write(data2[i]);
+    
+  }
+  Serial.printf("\n");
+  current_user[request] = "";
 }
-void receiveEvents(int num) {
+void receiveEvents(int num)
+{
+  if (num > 3){
   char c;
   request.clear();
-  while (Wire.available()){
-    c = Wire.read();
-    request.push_back(c);
-  }
+  Serial.printf("IN RECIEVE\n");
 
+  while (Wire.available())
+  {
+
+    c = Wire.read();
+    if (c != 0)
+    {
+      request.push_back(c);
+      Serial.printf("printing char  %d\n", c);
+    }
+  }
+  Serial.printf("STRING - %s\n", request.c_str());
+  }
 }
