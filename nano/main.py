@@ -8,7 +8,7 @@ from subsystems.nfr6 import FaceRecognition
 from subsystems.i2c import I2C
 light_pin = 32
 motion_pin = 40
-recieve_sig=20
+recieve_sig=38
 target_duty=0
 duty = 0
 
@@ -110,11 +110,12 @@ def updateValues():
     data=i2c.run()
     db.updateUserData(1,data[0],data[2],data[3])
 
-target_duty=db.getUserVanity(0)
-light_pwm.start(duty)
-eel.spawn(screenControl)
-GPIO.add_event_detect(recieve_sig, GPIO.rising, callback=updateValues)
-#eel.spawn(runFacialRecognition)
-print("starting")
+if __name__ == "__main__":
+    target_duty=db.getUserVanity(0)
+    #light_pwm.start(duty)
+    #eel.spawn(screenControl)
+    GPIO.add_event_detect(recieve_sig, GPIO.rising, callback=updateValues)
+    #eel.spawn(runFacialRecognition)
+    print("starting")
 
-eel.start("index.html", cmdline_args=["--kiosk"])
+    #eel.start("index.html", cmdline_args=["--kiosk"])
