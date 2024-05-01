@@ -1,6 +1,6 @@
 import numpy as np
 import cv2 
-
+import time
 
 
 class FaceRecognition():
@@ -10,6 +10,7 @@ class FaceRecognition():
         self.recognizer = cv2.FaceRecognizerSF.create("models/face_recognition_sface_2021dec.onnx","")
         self.cap = None
         self.features = []
+        self.features_label=[]
         self.running=False
         self.load_face()
         
@@ -26,18 +27,19 @@ class FaceRecognition():
         face1align= self.recognizer.alignCrop(img1, faces1[1][0])
 
         self.features.append(self.recognizer.feature(face1align))
-    
+        self.features_label.append("User1")
     def stop_recognition(self):
         self.running=False
         # self.cap.release()
 
     def run_recognition(self):
         if self.running:
-            return None
+           return None
+        start = time.time()
         self.cap = cv2.VideoCapture(0)
         self.running=True
         user = None
-        while self.running:
+        while self.running and (time.time()-start) < 10:
             print("Looking...")
             has_frame,frame = self.cap.read()
             if not has_frame:
@@ -57,6 +59,9 @@ class FaceRecognition():
                     if max(scores) >= cosine_sim:
                         user = np.argmax(scores)
                         print(f"User recognizer {user}")
+                        self.running=False
                         self.cap.release()
-                        return user
+                        return self.features_label[user]
+        self.running = False
+        self.cap.release()
         return None

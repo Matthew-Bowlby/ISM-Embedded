@@ -39,7 +39,16 @@ function loginEvent(userData) {
     const obj = JSON.parse(userData)
 
     document.getElementById('greeting_header').innerText = "Welcome, "+ obj[0].NAME;
-    document.getElementById('temp').innerText = obj[0].TEMP+"°";
+    document.getElementById('temp').innerText = obj[0].STEPS+"°";
+}
+
+
+eel.expose(updateEvent)
+function updateEvent(userData) {
+    const obj = JSON.parse(userData)
+
+    document.getElementById('greeting_header').innerText = "Welcome, "+ obj[0].NAME;
+    document.getElementById('temp').innerText = obj[0].STEPS+"°";
 }
 
 eel.expose(sleepEvent)

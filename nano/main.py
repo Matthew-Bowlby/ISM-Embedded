@@ -2,16 +2,17 @@ import eel
 import RPi.GPIO as GPIO
 import sys
 import json
+import atexit
 import numpy as np
 from subsystems.database import DB
 from subsystems.nfr6 import FaceRecognition
 from subsystems.i2c import I2C
 light_pin = 32
 motion_pin = 40
-recieve_sig=38
+recieve_sig=21
 target_duty=0
 duty = 0
-
+active_user=None
 eel.init("web")
 
 login_status = False
@@ -33,14 +34,15 @@ print("setup db")
 
 def runFacialRecognition():
     global login_status
+    global active_user
     #eel.sleep(30)
     print("running fr")
     user=fr.run_recognition()
     # run facial rec and return user #
     # user = 1
     if user != None:
-
-        userinfo=db.getUserData(1)
+        active_user=user
+        userinfo=db.getUserData(user)
         
         eel.loginEvent(userinfo)
 
@@ -68,6 +70,7 @@ def turn_off():
 def screenControl():
     global login_status
     lightControl = None
+    global active_user
     frControl = None
     prev_val = None
     timeout_count = 0
@@ -76,29 +79,31 @@ def screenControl():
 
             val = GPIO.input(motion_pin)
             if val != prev_val:
+                print(val)
                 if val == GPIO.HIGH:
                     timeout_count = 0
-                    if not login_status and frControl == None:
+                    if not login_status:# and frControl == None:
                         print("Motion detected!")
                         eel.wakeEvent()
                         eel.spawn(turn_on)
                         frControl = eel.spawn(runFacialRecognition)
-                                         
+                        print("screenControl: starting recognition")                 
                        
             elif val == GPIO.LOW:
                 timeout_count += 1
                 if login_status:
-                    if timeout_count == 60:
+                    if timeout_count >= 60:
                         eel.sleepEvent()
                         login_status = False
+                        active_user= None
                         timeout_count = 0
                         eel.spawn(turn_off)
                 else:
-                    if timeout_count == 10:
+                    print(timeout_count)
+                    if timeout_count >= 10:
                         eel.sleepEvent()
                         eel.spawn(turn_off)
-                        if not frControl.dead:
-                            fr.stop_recognition()
+                        fr.stop_recognition()
 
             prev_val = val
             eel.sleep(1)
@@ -106,16 +111,25 @@ def screenControl():
         GPIO.cleanup()
 
 
-def updateValues():
+def updateValues(idc):
     data=i2c.run()
-    db.updateUserData(1,data[0],data[2],data[3])
+    global active_user
+    global db
+    db.updateUserData(data)
+    if data[0]==active_user:
+        eel.updateEvent(db.getUserData(data[0]))
+
+def exit_handler():
+    GPIO.cleanup()
 
 if __name__ == "__main__":
-    target_duty=db.getUserVanity(0)
+    atexit.register(exit_handler)
+    target_duty=db.getUserVanity("Default")
     #light_pwm.start(duty)
-    #eel.spawn(screenControl)
-    GPIO.add_event_detect(recieve_sig, GPIO.rising, callback=updateValues)
+    eel.spawn(screenControl)
+    GPIO.add_event_detect(recieve_sig, GPIO.RISING, callback=updateValues)
     #eel.spawn(runFacialRecognition)
     print("starting")
 
+    eel.start("index.html")
     #eel.start("index.html", cmdline_args=["--kiosk"])
