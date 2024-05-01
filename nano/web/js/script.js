@@ -37,18 +37,28 @@ function loginEvent(userData) {
     timeoverlay.classList.remove('show'); 
     sleepoverlay.classList.remove('show');
     const obj = JSON.parse(userData)
+    updateHTML(obj)
+    
+}
+function updateHTML(dataOBJ){
+    document.getElementById('greeting_header').innerText = "Welcome, "+ dataOBJ[0].NAME;
+    document.getElementById('temp').innerText = dataOBJ[0].TEMP+"°";
+    document.getElementById('cond').innerText = dataOBJ[0].CONDITION;
+    document.getElementById('hum').innerText = dataOBJ[0].HUMIDITY;
+    document.getElementById('uv').innerText = dataOBJ[0].UV_INDEX;
 
-    document.getElementById('greeting_header').innerText = "Welcome, "+ obj[0].NAME;
-    document.getElementById('temp').innerText = obj[0].STEPS+"°";
+    document.getElementById('hr').innerText = dataOBJ[0].HEART;
+    document.getElementById('cal').innerText = dataOBJ[0].CALORIES;
+    document.getElementById('steps').innerText = dataOBJ[0].STEPS;
+    document.getElementById('dist').innerText = dataOBJ[0].DISTANCE_WALKED;
 }
 
 
 eel.expose(updateEvent)
 function updateEvent(userData) {
     const obj = JSON.parse(userData)
-
-    document.getElementById('greeting_header').innerText = "Welcome, "+ obj[0].NAME;
-    document.getElementById('temp').innerText = obj[0].STEPS+"°";
+    updateHTML(obj)
+    
 }
 
 eel.expose(sleepEvent)
