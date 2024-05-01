@@ -11,6 +11,7 @@ class FaceRecognition():
         self.detector = cv2.FaceDetectorYN.create(self.where+"models/face_detection_yunet_2023mar.onnx","",(1280,960),.9,.3,5000)
         self.recognizer = cv2.FaceRecognizerSF.create(self.where+"models/face_recognition_sface_2021dec.onnx","")
         self.cap = None
+        self.sampleNum=0
         self.features = []
         self.features_label=[]
         self.running=False
@@ -18,14 +19,19 @@ class FaceRecognition():
         self.user_creation = None
     def load_face(self):
         path=self.where+"img"
+        self.features = []
+        self.features_label=[]
         imagepaths=[os.path.join(path,f) for f in os.listdir(path)]
         for imagepath in imagepaths:
             if ".DS_Store" in imagepath:
                 continue
             else:
-                faceImg= Image.open(imagepath).convert("RGB")
-                self.detector.setInputSize((faceImg.size[0],faceImg.size[1]))
+                #faceImg= Image.open(imagepath).convert("RGB")
+                faceImg = cv2.imread(imagepath)
+                self.detector.setInputSize((faceImg.shape[1],faceImg.shape[0]))
                 faces1=self.detector.detect(faceImg)
+                if faces1[1] is None:
+                    continue
                 face1align= self.recognizer.alignCrop(faceImg, faces1[1][0])
                 self.features.append(self.recognizer.feature(face1align))
                 self.features_label.append(os.path.split(imagepath)[-1].split('.')[0])
@@ -37,16 +43,17 @@ class FaceRecognition():
         self.cap=cv2.VideoCapture(0)
         self.running=True
         self.user_creation=name
+        self.sampleNum=0
     def stopCreating(self):
         self.cap.release()
         user = self.user_creation
         self.user_creation=None
+        #self.load_face()
         return user
     def creatingImages(self):
         print("req image")
         if self.user_creation == None:
             return None
-        sampleNum=0
         user=self.user_creation
         ret, frame = self.cap.read()
         #gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
@@ -54,19 +61,20 @@ class FaceRecognition():
         faces=self.detector.detect(frame)
         if faces[1] is not None:
             for idx, face in enumerate(faces[1]):
-                sampleNum=sampleNum+1
-                x= face[0]
-                y=face[1]
-                w=face[2]
-                h=face[3]
-                cv2.imwrite(self.where+f"img/{user}."+str(sampleNum)+".jpg",frame[y:y+h,x:x+w])
+                self.sampleNum=self.sampleNum+1
+                x= int(face[0])
+                y=int(face[1])
+                w=int(face[2])
+                h=int(face[3])
+                print("face found",x,y,w,h)
+                cv2.imwrite(self.where+f"img/{user}."+str(self.sampleNum)+".jpg",frame[y:y+h,x:x+w])
                 cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
                 #cv2.waitKey(100)
-                print(sampleNum)
+                print(self.sampleNum)
                 break
         # cv2.imshow("Face",img)
         # cv2.waitKey(1)
-        if(sampleNum>50):
+        if(self.sampleNum>50):
             return None
         # Convert the frame to base64
         retval, buffer = cv2.imencode('.jpg', frame)
