@@ -31,7 +31,7 @@ async function updateImage() {
     }
     const image = await eel.get_image()();
     document.getElementById('live-feed').src = image;
-    setTimeout(updateImage, 1000); // Request image every second
+    setTimeout(updateImage, 10); // Request image every second
 }
 
 eel.expose(stopUpdates)

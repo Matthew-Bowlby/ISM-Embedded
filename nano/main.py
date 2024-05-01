@@ -141,5 +141,5 @@ if __name__ == "__main__":
     eel.spawn(createImages)
     print("starting")
 
-    #eel.start("index.html")
-    eel.start("index.html", cmdline_args=["--kiosk"])
+    eel.start("index.html")
+    #eel.start("index.html", cmdline_args=["--kiosk"])
