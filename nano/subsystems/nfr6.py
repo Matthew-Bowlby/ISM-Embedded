@@ -39,7 +39,9 @@ class FaceRecognition():
         self.user_creation=name
     def stopCreating(self):
         self.cap.release()
+        user = self.user_creation
         self.user_creation=None
+        return user
     def creatingImages(self):
         print("req image")
         if self.user_creation == None:

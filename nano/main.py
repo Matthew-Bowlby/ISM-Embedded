@@ -84,21 +84,21 @@ def screenControl():
     timeout_count = 0
     try:
         while True:
-            
-            val = GPIO.input(motion_pin)
-            if val != prev_val:
-                print(val)
-                if val == GPIO.HIGH:
-                    timeout_count = 0
-                    if not login_status:# and frControl == None:
-                        print("Motion detected!")
-                        eel.wakeEvent()
-                        eel.spawn(turn_on)
-                        frControl = eel.spawn(runFacialRecognition)
-                        print("screenControl: starting recognition")                 
-                       
-            elif val == GPIO.LOW:
-                if not disable_timeout:
+            if not disable_timeout:
+                val = GPIO.input(motion_pin)
+                if val != prev_val:
+                    print(val)
+                    if val == GPIO.HIGH:
+                        timeout_count = 0
+                        if not login_status:# and frControl == None:
+                            print("Motion detected!")
+                            eel.wakeEvent()
+                            eel.spawn(turn_on)
+                            frControl = eel.spawn(runFacialRecognition)
+                            print("screenControl: starting recognition")                 
+                        
+                elif val == GPIO.LOW:
+                    
                     timeout_count += 1
                     if login_status:
                         if timeout_count >= 60:
@@ -114,7 +114,7 @@ def screenControl():
                             eel.spawn(turn_off)
                             fr.stop_recognition()
 
-            prev_val = val
+                prev_val = val
             eel.sleep(1)
     finally:
         GPIO.cleanup()
@@ -128,8 +128,16 @@ def createImages():
 def stopCreating():
     print("stopped taking")
     global disable_timeout
-    fr.stopCreating()
+    global active_user
+    user=fr.stopCreating()
     disable_timeout=False
+
+    active_user=user
+    userinfo=db.getUserData(user)
+        
+    eel.loginEvent(userinfo)
+
+    login_status = True
 
 def updateValues(idc):
     data=i2c.run()
@@ -140,7 +148,7 @@ def updateValues(idc):
     if not db.id_exists(data[0]):
         print(f"User: {data[0]} not found. Adding")
         db.addUser(data[0])
-        disbale_timeout=True
+        disable_timeout=True
         fr.startImageTaking(data[0])
         eel.startPicTaking()
     db.updateUserData(data)
