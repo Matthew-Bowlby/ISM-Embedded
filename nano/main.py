@@ -13,7 +13,9 @@ recieve_sig=21
 target_duty=0
 duty = 0
 active_user=None
-eel.init("web")
+disable_timeout = False
+home = '/home/ism/ISM-Embedded/nano/'
+eel.init(home+"web")
 
 login_status = False
 GPIO.setmode(GPIO.BOARD)
@@ -77,11 +79,12 @@ def screenControl():
     lightControl = None
     global active_user
     frControl = None
+    global disable_timeout
     prev_val = None
     timeout_count = 0
     try:
         while True:
-
+            
             val = GPIO.input(motion_pin)
             if val != prev_val:
                 print(val)
@@ -95,20 +98,21 @@ def screenControl():
                         print("screenControl: starting recognition")                 
                        
             elif val == GPIO.LOW:
-                timeout_count += 1
-                if login_status:
-                    if timeout_count >= 60:
-                        eel.sleepEvent()
-                        login_status = False
-                        active_user= None
-                        timeout_count = 0
-                        eel.spawn(turn_off)
-                else:
-                    print(timeout_count)
-                    if timeout_count >= 10:
-                        eel.sleepEvent()
-                        eel.spawn(turn_off)
-                        fr.stop_recognition()
+                if not disable_timeout:
+                    timeout_count += 1
+                    if login_status:
+                        if timeout_count >= 60:
+                            eel.sleepEvent()
+                            login_status = False
+                            active_user= None
+                            timeout_count = 0
+                            eel.spawn(turn_off)
+                    else:
+                        print(timeout_count)
+                        if timeout_count >= 10:
+                            eel.sleepEvent()
+                            eel.spawn(turn_off)
+                            fr.stop_recognition()
 
             prev_val = val
             eel.sleep(1)
@@ -122,14 +126,21 @@ def createImages():
 
 @eel.expose
 def stopCreating():
+    print("stopped taking")
+    global disable_timeout
     fr.stopCreating()
+    disable_timeout=False
+
 def updateValues(idc):
     data=i2c.run()
     global active_user
+    global disable_timeout
     global db
 
     if not db.id_exists(data[0]):
+        print(f"User: {data[0]} not found. Adding")
         db.addUser(data[0])
+        disbale_timeout=True
         fr.startImageTaking(data[0])
         eel.startPicTaking()
     db.updateUserData(data)

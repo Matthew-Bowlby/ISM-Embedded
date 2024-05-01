@@ -74,10 +74,10 @@ class DB:
 
     def addUser(self, name):
         sqliteConnector = sqlite3.connect("user_data.db")
-        cursor = self.sqliteConnector.cursor()
+        cursor = sqliteConnector.cursor()
         cursor.execute(
             "INSERT INTO user_data(NAME) VALUES (?)",
-            name,
+           ( name,)
         )
 
         sqliteConnector.commit()

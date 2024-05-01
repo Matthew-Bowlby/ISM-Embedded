@@ -7,8 +7,8 @@ from PIL import Image
 class FaceRecognition():
 
     def __init__(self):
-        self.where ='/home/ism/ISM-Embedded/nano/models/'
-        self.detector = cv2.FaceDetectorYN.create(self.where+"face_detection_yunet_2023mar.onnx","",(320,320),.9,.3,5000)
+        self.where ='/home/ism/ISM-Embedded/nano/'
+        self.detector = cv2.FaceDetectorYN.create(self.where+"models/face_detection_yunet_2023mar.onnx","",(1280,960),.9,.3,5000)
         self.recognizer = cv2.FaceRecognizerSF.create(self.where+"models/face_recognition_sface_2021dec.onnx","")
         self.cap = None
         self.features = []
@@ -33,6 +33,7 @@ class FaceRecognition():
 
 
     def startImageTaking(self,name):
+        print("starting cam")
         self.cap=cv2.VideoCapture(0)
         self.running=True
         self.user_creation=name
@@ -40,20 +41,27 @@ class FaceRecognition():
         self.cap.release()
         self.user_creation=None
     def creatingImages(self):
+        print("req image")
         if self.user_creation == None:
             return None
         sampleNum=0
         user=self.user_creation
         ret, frame = self.cap.read()
-        gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-        self.detector.setInputSize(int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-        faces=self.detector.detect(gray,1.3,5)
-        for(x,y,w,h) in faces:
-            sampleNum=sampleNum+1
-            cv2.imwrite(self.where+f"img/{user}."+str(sampleNum)+".jpg",gray[y:y+h,x:x+w])
-            cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
-            cv2.waitKey(100)
-            print(sampleNum)
+        #gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+        self.detector.setInputSize((int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))))
+        faces=self.detector.detect(frame)
+        if faces[1] is not None:
+            for idx, face in enumerate(faces[1]):
+                sampleNum=sampleNum+1
+                x= face[0]
+                y=face[1]
+                w=face[2]
+                h=face[3]
+                cv2.imwrite(self.where+f"img/{user}."+str(sampleNum)+".jpg",frame[y:y+h,x:x+w])
+                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
+                #cv2.waitKey(100)
+                print(sampleNum)
+                break
         # cv2.imshow("Face",img)
         # cv2.waitKey(1)
         if(sampleNum>50):

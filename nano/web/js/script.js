@@ -107,15 +107,22 @@ eel.expose(sleepEvent)
 function sleepEvent() {
     var timeoverlay = document.getElementById('overlay');
     var sleepoverlay = document.getElementById('sleep-overlay');
+    var camoverlay = document.getElementById('camera-overlay');
     sleepoverlay.classList.add('show');
     timeoverlay.classList.remove('show');
+    camoverlay.classList.remove('show');
+
+
 
 }
 
 eel.expose(wakeEvent)
 function wakeEvent() {
     var timeoverlay = document.getElementById('overlay');
+    var camoverlay = document.getElementById('camera-overlay');
     var sleepoverlay = document.getElementById('sleep-overlay');
     sleepoverlay.classList.remove('show');
     timeoverlay.classList.add('show');
+    camoverlay.classList.remove('show');
+
 }
