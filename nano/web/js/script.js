@@ -1,15 +1,42 @@
-function getDate() {
-    var now = new Date();
-    var hours = now.getHours() % 12 || 12;
-    var time = hours + ':' + now.getMinutes() + ":" + now.getSeconds();
-    document.getElementById('time').innerHTML = time;
-    setTimeout(getDate, 500);
+// function getDate() {
+//     var now = new Date();
+//     var hours = now.getHours() % 12 || 12;
+//     var time = hours + ':' + now.getMinutes() + ":" + now.getSeconds();
+//     document.getElementById('time').innerHTML = time;
+//     setTimeout(getDate, 500);
+// }
+// ;
+// getDate();
+// eel.expose(hideTime)
+// function hideTime() {
+//     // $("#time").hide()
+// }
+
+
+let shouldUpdate = true;
+
+eel.expose(startPicTaking)
+function startPicTaking(){
+    var timeoverlay = document.getElementById('overlay');
+    var sleepoverlay = document.getElementById('sleep-overlay');
+    var camoverlay = document.getElementById('camera-overlay');
+    sleepoverlay.classList.remove('show');
+    timeoverlay.classList.remove('show');
+    camoverlay.classList.add('show');
+    updateImage();
 }
-;
-getDate();
-eel.expose(hideTime)
-function hideTime() {
-    // $("#time").hide()
+async function updateImage() {
+    if (!shouldUpdate) {
+        return;
+    }
+    const image = await eel.get_image()();
+    document.getElementById('live-feed').src = image;
+    setTimeout(updateImage, 1000); // Request image every second
+}
+
+eel.expose(stopUpdates)
+function stopUpdates() {
+    shouldUpdate = false;
 }
 
 
