@@ -1,7 +1,7 @@
 import numpy as np
 import cv2 
 import time
-
+import base64
 
 class FaceRecognition():
 
@@ -28,6 +28,20 @@ class FaceRecognition():
 
         self.features.append(self.recognizer.feature(face1align))
         self.features_label.append("User1")
+    def startImageTaking(self):
+        self.cap=cv2.VideoCapture(0)
+        self.running=True
+    def stopCreating(self):
+        self.cap.release()
+    def creatingImages(self):
+        ret, frame = self.cap.read()
+
+        # Convert the frame to base64
+        retval, buffer = cv2.imencode('.jpg', frame)
+        jpg_as_text = base64.b64encode(buffer).decode('utf-8')
+
+        return "data:image/jpeg;base64," + jpg_as_text
+    
     def stop_recognition(self):
         self.running=False
         # self.cap.release()

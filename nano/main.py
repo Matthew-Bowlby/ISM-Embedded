@@ -49,6 +49,11 @@ def runFacialRecognition():
         login_status = True
 
 
+
+@eel.expose
+def get_image():
+    return fr.creatingImages()
+
 def turn_on():
     global duty
     global target_duty
@@ -110,6 +115,10 @@ def screenControl():
     finally:
         GPIO.cleanup()
 
+def createImages():
+    eel.sleep(10)
+    fr.startImageTaking()
+    eel.startPicTaking()
 
 def updateValues(idc):
     data=i2c.run()
@@ -126,9 +135,10 @@ if __name__ == "__main__":
     atexit.register(exit_handler)
     target_duty=db.getUserVanity("Default")
     #light_pwm.start(duty)
-    eel.spawn(screenControl)
+    #eel.spawn(screenControl)
     GPIO.add_event_detect(recieve_sig, GPIO.RISING, callback=updateValues)
     #eel.spawn(runFacialRecognition)
+    eel.spawn(createImages)
     print("starting")
 
     #eel.start("index.html")
