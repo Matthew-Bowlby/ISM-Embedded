@@ -8,7 +8,7 @@ class I2C():
     def __init__(self,recieve_sig,eel):
         self.I2C_ADDR = 0x18
         self.receive_sig = recieve_sig # change as needed
-        self.info = ["name", "TempF", "Condi", "UVInd", "Humid", "CaloB", "StepC", "DistW", "Heart", "Heart"]
+        self.info = ["Name", "TempF", "Condi", "UVInd", "Humid", "CaloB", "StepC", "DistW", "Heart", "Heart"]
         if eel == None:
             self.eel = time
         else:

@@ -2,40 +2,62 @@ import numpy as np
 import cv2 
 import time
 import base64
-
+import os
+from PIL import Image
 class FaceRecognition():
 
     def __init__(self):
-        self.detector = cv2.FaceDetectorYN.create("models/face_detection_yunet_2023mar.onnx","",(320,320),.9,.3,5000)
-        self.recognizer = cv2.FaceRecognizerSF.create("models/face_recognition_sface_2021dec.onnx","")
+        self.where ='/home/ism/ISM-Embedded/nano/models/'
+        self.detector = cv2.FaceDetectorYN.create(self.where+"face_detection_yunet_2023mar.onnx","",(320,320),.9,.3,5000)
+        self.recognizer = cv2.FaceRecognizerSF.create(self.where+"models/face_recognition_sface_2021dec.onnx","")
         self.cap = None
         self.features = []
         self.features_label=[]
         self.running=False
         self.load_face()
-        
+        self.user_creation = None
     def load_face(self):
-        img1 = cv2.imread("img/1.jpg")
-        im1w = int(img1.shape[1])
-        im1h = int(img1.shape[0])
-        self.detector.setInputSize((im1w,960))
+        path=self.where+"img"
+        imagepaths=[os.path.join(path,f) for f in os.listdir(path)]
+        for imagepath in imagepaths:
+            if ".DS_Store" in imagepath:
+                continue
+            else:
+                faceImg= Image.open(imagepath).convert("RGB")
+                self.detector.setInputSize((faceImg.size[0],faceImg.size[1]))
+                faces1=self.detector.detect(faceImg)
+                face1align= self.recognizer.alignCrop(faceImg, faces1[1][0])
+                self.features.append(self.recognizer.feature(face1align))
+                self.features_label.append(os.path.split(imagepath)[-1].split('.')[0])
 
-        img1 = cv2.resize(img1,(im1w,960))
 
 
-        faces1=self.detector.detect(img1)
-        face1align= self.recognizer.alignCrop(img1, faces1[1][0])
-
-        self.features.append(self.recognizer.feature(face1align))
-        self.features_label.append("User1")
-    def startImageTaking(self):
+    def startImageTaking(self,name):
         self.cap=cv2.VideoCapture(0)
         self.running=True
+        self.user_creation=name
     def stopCreating(self):
         self.cap.release()
+        self.user_creation=None
     def creatingImages(self):
+        if self.user_creation == None:
+            return None
+        sampleNum=0
+        user=self.user_creation
         ret, frame = self.cap.read()
-
+        gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+        self.detector.setInputSize(int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        faces=self.detector.detect(gray,1.3,5)
+        for(x,y,w,h) in faces:
+            sampleNum=sampleNum+1
+            cv2.imwrite(self.where+f"img/{user}."+str(sampleNum)+".jpg",gray[y:y+h,x:x+w])
+            cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
+            cv2.waitKey(100)
+            print(sampleNum)
+        # cv2.imshow("Face",img)
+        # cv2.waitKey(1)
+        if(sampleNum>50):
+            return None
         # Convert the frame to base64
         retval, buffer = cv2.imencode('.jpg', frame)
         jpg_as_text = base64.b64encode(buffer).decode('utf-8')

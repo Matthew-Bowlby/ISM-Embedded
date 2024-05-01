@@ -120,11 +120,20 @@ def createImages():
     fr.startImageTaking()
     eel.startPicTaking()
 
+@eel.expose
+def stopCreating():
+    fr.stopCreating()
 def updateValues(idc):
     data=i2c.run()
     global active_user
     global db
+
+    if not db.id_exists(data[0]):
+        db.addUser(data[0])
+        fr.startImageTaking(data[0])
+        eel.startPicTaking()
     db.updateUserData(data)
+
     if data[0]==active_user:
         eel.updateEvent(db.getUserData(data[0]))
 
@@ -135,11 +144,11 @@ if __name__ == "__main__":
     atexit.register(exit_handler)
     target_duty=db.getUserVanity("Default")
     #light_pwm.start(duty)
-    #eel.spawn(screenControl)
+    eel.spawn(screenControl)
     GPIO.add_event_detect(recieve_sig, GPIO.RISING, callback=updateValues)
     #eel.spawn(runFacialRecognition)
-    eel.spawn(createImages)
+    #eel.spawn(createImages)
     print("starting")
 
-    eel.start("index.html")
-    #eel.start("index.html", cmdline_args=["--kiosk"])
+    #eel.start("index.html")
+    eel.start("index.html", cmdline_args=["--kiosk"])

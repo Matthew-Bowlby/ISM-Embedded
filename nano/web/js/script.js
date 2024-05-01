@@ -25,11 +25,26 @@ function startPicTaking(){
     camoverlay.classList.add('show');
     updateImage();
 }
+function stopPicTaking(){
+    var timeoverlay = document.getElementById('overlay');
+    var sleepoverlay = document.getElementById('sleep-overlay');
+    var camoverlay = document.getElementById('camera-overlay');
+    sleepoverlay.classList.add('show');
+    timeoverlay.classList.remove('show');
+    camoverlay.classList.remove('show');
+    eel.stopCreating()
+}
 async function updateImage() {
     if (!shouldUpdate) {
         return;
     }
     const image = await eel.get_image()();
+    if (!image) {
+        // Stop updates if image is None
+        shouldUpdate = false;
+        stopPicTaking();
+        return;
+    }
     document.getElementById('live-feed').src = image;
     setTimeout(updateImage, 10); // Request image every second
 }
