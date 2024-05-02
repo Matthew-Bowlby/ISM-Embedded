@@ -27,15 +27,33 @@ json current_user;
 string request;
 int sensorValue;
 unsigned long time2;
+bool b = false;
 
 void requestEvents();
 void receiveEvents(int);
+void check_json(){
+  int i =0;
+  for (json::iterator it = current_user.begin(); it != current_user.end(); ++it) {
+    if (it.value() != "" && it.key() != "Name"){
+      i++;
+    }
+  if (i != 0){
+    //Serial.printf("sent high signal\n");
+    // Serial.printf("test here %s\n", test1.c_str());
+    digitalWrite(27, HIGH);
 
+  }
+  else{
+    digitalWrite(27, LOW);
+  }
+
+}
+}
 json createUser(string name)
 {
   // create empty json and store username
   json j;
-  j["name"] = name;
+  j["Name"] = name;
   j["TempF"] = "";
   j["Condi"] = "";
   j["UVInd"] = "";
@@ -46,6 +64,19 @@ json createUser(string name)
   j["Heart"] = "";
   return j;
 }
+void reset_json(){
+  current_user["Name"] = "";
+  current_user["TempF"] = "";
+  current_user["Condi"] = "";
+  current_user["UVInd"] = "";
+  current_user["Humid"] = "";
+  current_user["CaloB"] = "";
+  current_user["StepC"] = "";
+  current_user["DistW"] = "";
+  current_user["Heart"] = "";
+  
+}
+
 /*
 void storeData(json user, string userdata){
 // given a refernece to a user and the data store data
@@ -144,13 +175,22 @@ class MyCallbacks : public BLECharacteristicCallbacks
 
       Serial.printf("created user\n");
     }
+    else if(value == "Disconnected"){
+     // current_user = createUser("User1");
+     Serial.printf("userleft\n");
+     reset_json();
+      digitalWrite(27, LOW);
+    }
     else
     {
       string test, test2;
-
       int pos = value.find(":");
       tag = value.substr(0, pos);
       data = value.substr(pos + 2, value.length());
+      
+      if (tag == "NewName"){
+        tag = "Name";
+      }
       current_user[tag] = data;
       test = current_user[tag];
 
@@ -201,18 +241,18 @@ void loop()
   string test1;
 
   test1 = current_user["Heart"];
+  check_json();
+  // if (test1 != "")
+  // {
+  //   Serial.printf("DATA PIN HIGH\n");
+  //   // Serial.printf("test here %s\n", test1.c_str());
+  //   digitalWrite(27, HIGH);
+  // }
+  // else
+  // {
 
-  if (test1 != "")
-  {
-    Serial.printf("DATA PIN HIGH\n");
-    // Serial.printf("test here %s\n", test1.c_str());
-    digitalWrite(27, HIGH);
-  }
-  else
-  {
-
-    digitalWrite(27, LOW);
-  }
+  //   digitalWrite(27, LOW);
+  // }
 
   delay(1000);
   num_devices = pServ->getConnectedCount();
@@ -231,7 +271,7 @@ void loop()
   else
   {
     digitalWrite(32, LOW);
-    Serial.printf("------\n");
+   // Serial.printf("------\n");
   }
   time2 = millis();
   time2 = time2 / 1000;
@@ -244,15 +284,24 @@ void loop()
   // Convert voltage to temperature using LM35 formula (10mV per degree F)
   float temperatureF = voltage * 100.0; // 10mV per degree Celsius
                                         // Serial.printf("RoomTemp - %f\n");
+                                   //     if (temperatureF != 0) Serial.printf("RoomTemp - %f\n");
 }
 
 void requestEvents()
 {
-  string data2;
-  char byte;
-  Serial.printf("IN REQUEST\n");
-  data2 = current_user[request];
 
+  string data2;
+  float test;
+  int test1;
+  char byte;
+  Serial.printf("REQUEST\n");
+  data2 = current_user[request];
+  test = std::stof(data2);
+  test1 = (int) test;
+  data2 = to_string(test1);
+  Serial.printf("msg len %d\n", data2.length());
+  Serial.printf("msg- %s\n", data2.c_str());
+  Wire.write((char)data2.length());
   for (int i = 0; i < data2.length(); i++)
   {
     Serial.printf(" -%d-",i);
@@ -260,14 +309,18 @@ void requestEvents()
     
   }
   Serial.printf("\n");
+  if (request != "Name"){
   current_user[request] = "";
+  }
+
+
 }
 void receiveEvents(int num)
 {
-  if (num > 3){
+
   char c;
   request.clear();
-  Serial.printf("IN RECIEVE\n");
+  Serial.printf("RECIEVE\n");
 
   while (Wire.available())
   {
@@ -276,9 +329,9 @@ void receiveEvents(int num)
     if (c != 0)
     {
       request.push_back(c);
-      Serial.printf("printing char  %d\n", c);
+    //  Serial.printf("printing char  %d\n", c);
     }
   }
   Serial.printf("STRING - %s\n", request.c_str());
-  }
+  
 }
