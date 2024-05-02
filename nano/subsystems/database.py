@@ -96,7 +96,7 @@ class DB:
         for i in range(len(columns)):
             row_data[columns[i]] = out[i]
         json_data.append(row_data)
-        return json.dumps(json_data)
+        return json.dumps(json_data),row_data
 
     def updateUserData(self, updates):
         # updates = (name, temp, van)

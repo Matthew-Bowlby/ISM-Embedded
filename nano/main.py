@@ -44,8 +44,8 @@ def runFacialRecognition():
     # user = 1
     if user != None:
         active_user=user
-        userinfo=db.getUserData(user)
-        light_pwm.ChangeDutyCycle(userinfo["VANITY"])
+        userinfo,info=db.getUserData(user)
+        light_pwm.ChangeDutyCycle(info["VANITY"])
         eel.loginEvent(userinfo)
 
         login_status = True
@@ -133,7 +133,7 @@ def stopCreating():
     disable_timeout=False
 
     active_user=user
-    userinfo=db.getUserData(user)
+    userinfo,_=db.getUserData(user)
         
     eel.loginEvent(userinfo)
 
@@ -159,14 +159,15 @@ def updateValues(idc):
     db.updateUserData(data)
 
     if data[0]==active_user:
-        eel.updateEvent(db.getUserData(data[0]))
+        usdata,_=db.getUserData(data[0])
+        eel.updateEvent(usdata)
         updateBrightness(data[8])
 def exit_handler():
     GPIO.cleanup()
 
 if __name__ == "__main__":
     atexit.register(exit_handler)
-    target_duty=db.getUserVanity("Default")
+    target_duty=float(db.getUserVanity("Default"))
     #light_pwm.start(duty)
     eel.spawn(screenControl)
     GPIO.add_event_detect(recieve_sig, GPIO.RISING, callback=updateValues)
