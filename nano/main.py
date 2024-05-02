@@ -45,7 +45,7 @@ def runFacialRecognition():
     if user != None:
         active_user=user
         userinfo,info=db.getUserData(user)
-        light_pwm.ChangeDutyCycle(info["VANITY"])
+        # light_pwm.ChangeDutyCycle(info["VANITY"])
         eel.loginEvent(userinfo)
 
         login_status = True
