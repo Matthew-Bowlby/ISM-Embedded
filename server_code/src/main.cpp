@@ -6,12 +6,16 @@
 #include "../include/json.hpp"
 #include <unordered_map>
 #include <string>
+#include <iostream>
 #include <cstdlib>
-
+//#include <../include/aes.h>
+//#include <../include/modes.h>
+//#include <../include/filters.h>
 #define I2C_ADDR 0x18
 
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
+//using namespace CryptoPP;
 using namespace std;
 #define SERVICE_UUID "c0fe"
 #define CHARACTERISTIC_UUID "3dee"
@@ -31,23 +35,26 @@ bool b = false;
 
 void requestEvents();
 void receiveEvents(int);
-void check_json(){
-  int i =0;
-  for (json::iterator it = current_user.begin(); it != current_user.end(); ++it) {
-    if (it.value() != "" && it.key() != "Name"){
+void check_json()
+{
+  int i = 0;
+  for (json::iterator it = current_user.begin(); it != current_user.end(); ++it)
+  {
+    if (it.value() != "" && it.key() != "Name")
+    {
       i++;
     }
-  if (i != 0){
-    //Serial.printf("sent high signal\n");
-    // Serial.printf("test here %s\n", test1.c_str());
-    digitalWrite(27, HIGH);
-
+    if (i != 0)
+    {
+      // Serial.printf("sent high signal\n");
+      //  Serial.printf("test here %s\n", test1.c_str());
+      digitalWrite(27, HIGH);
+    }
+    else
+    {
+      digitalWrite(27, LOW);
+    }
   }
-  else{
-    digitalWrite(27, LOW);
-  }
-
-}
 }
 json createUser(string name)
 {
@@ -62,9 +69,11 @@ json createUser(string name)
   j["StepC"] = "";
   j["DistW"] = "";
   j["Heart"] = "";
+  j["Bright"] = "";
   return j;
 }
-void reset_json(){
+void reset_json()
+{
   current_user["Name"] = "";
   current_user["TempF"] = "";
   current_user["Condi"] = "";
@@ -74,9 +83,32 @@ void reset_json(){
   current_user["StepC"] = "";
   current_user["DistW"] = "";
   current_user["Heart"] = "";
-  
-}
+  current_user["Bright"] = "";
+}/*
+string decryptAES(string value)
+{
+  string decryptedValue;
+  try
+  {
+    string decrypted;
+    string encryptedData = value;
 
+    byte key[CryptoPP::AES::DEFAULT_KEYLENGTH] = {'\x18', '\xC3', '\xD5', '\x31', '\xF1', '\x06', '\x6F', '\xBD'}; // Example key
+    byte iv[CryptoPP::AES::BLOCKSIZE] = {'\xC4', '\xD4', '\xC4', '\x29', '\xA0', '\x46', '\xAD', '\xDD'};          // Example IV
+
+    CBC_Mode<AES>::Decryption aesDecryption(key, sizeof(key), iv);
+    StringSource s(encryptedData, true, new StreamTransformationFilter(aesDecryption, new StringSink(decrypted)));
+
+    decryptedValue = decrypted;
+    return decryptedValue;
+  }
+  catch (const std::exception &e)
+  {
+    std::cerr << "Crypto++ exception: " << e.what() << std::endl;
+    return "err";
+  }
+}
+*/
 /*
 void storeData(json user, string userdata){
 // given a refernece to a user and the data store data
@@ -158,45 +190,66 @@ class MyCallbacks : public BLECharacteristicCallbacks
   {
     std::string value = pCharacteristic->getValue();
 
-    if (value.length() > 0)
+    //value = decryptAES(value);
+   // Serial.printf("Decrypted value\n", );
+    if (value != "err")
     {
-      // Serial.print("*********");
-      // Serial.print("New value: ");
-      for (int i = 0; i < value.length(); i++)
+      if (value.length() > 0)
       {
-        Serial.print(value[i]);
+        // Serial.print("*********");
+        // Serial.print("New value: ");
+        for (int i = 0; i < value.length(); i++)
+        {
+          Serial.print(value[i]);
+        }
+
+        Serial.println();
+        // Serial.println("*********");
       }
+      if (value == "Connected")
+      {
 
-      Serial.println();
-      // Serial.println("*********");
-    }
-    if (value == "Connected")
-    {
-
-      Serial.printf("created user\n");
-    }
-    else if(value == "Disconnected"){
-     // current_user = createUser("User1");
-     Serial.printf("userleft\n");
-     reset_json();
-      digitalWrite(27, LOW);
-    }
-    else
-    {
-      string test, test2;
-      int pos = value.find(":");
-      tag = value.substr(0, pos);
-      data = value.substr(pos + 2, value.length());
-      
-      if (tag == "NewName"){
-        tag = "Name";
+        Serial.printf("created user\n");
       }
-      current_user[tag] = data;
-      test = current_user[tag];
+      else if (value == "Disconnected")
+      {
+        // current_user = createUser("User1");
+        Serial.printf("user left\n");
+        reset_json();
+        digitalWrite(27, LOW);
+      }
+      else
+      {
 
-      Serial.printf("Test Data -%s-, -%s- \n", test.c_str(), tag.c_str());
-      //  test = current_user[tag];
-      //  Serial.printf(" ---Test This %s- %s---\n", tag.c_str(), test.c_str());
+        string test, test2;
+        float dumb;
+        int dumb3;
+        int pos = value.find(":");
+        tag = value.substr(0, pos);
+        data = value.substr(pos + 2, value.length());
+
+        if (tag == "NewName")
+        {
+          tag = "Name";
+        }
+        if (tag == "Heart")
+        {
+
+          dumb = stof(data);
+          dumb3 = (int)dumb;
+          data = to_string(dumb3);
+          Serial.printf("test heart rate %s\n", data.c_str());
+        }
+        current_user[tag] = data;
+        test = current_user[tag];
+
+        Serial.printf("Test Data -%s-, -%s- \n", test.c_str(), tag.c_str());
+        //  test = current_user[tag];
+        //  Serial.printf(" ---Test This %s- %s---\n", tag.c_str(), test.c_str());
+      }
+    }
+    else{
+      Serial.printf("AES FAILED\n");
     }
   }
 };
@@ -271,7 +324,7 @@ void loop()
   else
   {
     digitalWrite(32, LOW);
-   // Serial.printf("------\n");
+    // Serial.printf("------\n");
   }
   time2 = millis();
   time2 = time2 / 1000;
@@ -284,7 +337,7 @@ void loop()
   // Convert voltage to temperature using LM35 formula (10mV per degree F)
   float temperatureF = voltage * 100.0; // 10mV per degree Celsius
                                         // Serial.printf("RoomTemp - %f\n");
-                                   //     if (temperatureF != 0) Serial.printf("RoomTemp - %f\n");
+                                        //     if (temperatureF != 0) Serial.printf("RoomTemp - %f\n");
 }
 
 void requestEvents()
@@ -296,24 +349,20 @@ void requestEvents()
   char byte;
   Serial.printf("REQUEST\n");
   data2 = current_user[request];
-  test = std::stof(data2);
-  test1 = (int) test;
-  data2 = to_string(test1);
+
   Serial.printf("msg len %d\n", data2.length());
   Serial.printf("msg- %s\n", data2.c_str());
   Wire.write((char)data2.length());
   for (int i = 0; i < data2.length(); i++)
   {
-    Serial.printf(" -%d-",i);
+    Serial.printf(" -%d-", i);
     Wire.write(data2[i]);
-    
   }
   Serial.printf("\n");
-  if (request != "Name"){
-  current_user[request] = "";
+  if (request != "Name")
+  {
+    current_user[request] = "";
   }
-
-
 }
 void receiveEvents(int num)
 {
@@ -329,9 +378,8 @@ void receiveEvents(int num)
     if (c != 0)
     {
       request.push_back(c);
-    //  Serial.printf("printing char  %d\n", c);
+      //  Serial.printf("printing char  %d\n", c);
     }
   }
   Serial.printf("STRING - %s\n", request.c_str());
-  
 }
