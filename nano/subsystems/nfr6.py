@@ -92,6 +92,7 @@ class FaceRecognition():
         start = time.time()
         self.cap = cv2.VideoCapture(0)
         self.running=True
+        self.detector.setInputSize((int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))))
         user = None
         while self.running and (time.time()-start) < 10:
             print("Looking...")
