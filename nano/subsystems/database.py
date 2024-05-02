@@ -57,7 +57,6 @@ class DB:
             self.fields = [
                 "NAME",
                 "TEMP",
-                "VANITY",
                 "CONDITION",
                 "UV_INDEX",
                 "HUMIDITY",
@@ -65,6 +64,7 @@ class DB:
                 "STEPS",
                 "DISTANCE_WALKED",
                 "HEART",
+                "VANITY",
                 "LASTUPDATE",
             ]
             self.link = [0, 1, 3, 4, 5, 6, 7, 8, 9]
@@ -96,7 +96,7 @@ class DB:
         for i in range(len(columns)):
             row_data[columns[i]] = out[i]
         json_data.append(row_data)
-        return json.dumps(json_data)
+        return json.dumps(json_data),row_data
 
     def updateUserData(self, updates):
         # updates = (name, temp, van)
@@ -109,10 +109,6 @@ class DB:
             #    cursor.execute(
             #   f"UPDATE user_data SET {self.fields[field]}='{time.time()}' WHERE NAME='{updates[0]}';"
             # )
-            if field == 2:
-                continue
-            if field > 2:
-                newfield -= 1
             if updates[newfield] == None:
                 continue
             cursor.execute(
