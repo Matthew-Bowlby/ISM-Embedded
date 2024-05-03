@@ -139,7 +139,7 @@ class FaceRecognition:
                             feature, face_feature, cv2.FaceRecognizerSF_FR_COSINE
                         )
                         scores.append(cosine_score)
-                    cosine_sim = 0.363
+                    cosine_sim = 0.363 #threshold of correctness
 
                     try:
                         if max(scores) >= cosine_sim:
