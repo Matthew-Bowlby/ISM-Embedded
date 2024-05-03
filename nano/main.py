@@ -26,7 +26,7 @@ GPIO.setup(light_pin, GPIO.OUT)
 GPIO.setup(recieve_sig, GPIO.IN)
 
 light_pwm = GPIO.PWM(light_pin, 150)
-
+light_pwm.start(0)
 fr = FaceRecognition()
 db = DB()
 i2c = I2C(recieve_sig,eel)
@@ -44,14 +44,13 @@ def runFacialRecognition():
     user=fr.run_recognition()
     # run facial rec and return user #
     # user = 1
+    print('bop')
     if user != None:
         active_user=user
         userinfo,info=db.getUserData(user)
-<<<<<<< HEAD
-        #light_pwm.ChangeDutyCycle(info["VANITY"])
-=======
+        if info["VANITY"] is not None:
+            light_pwm.ChangeDutyCycle(info["VANITY"])
         # light_pwm.ChangeDutyCycle(info["VANITY"])
->>>>>>> 4bdaf6b671d32279819b3c7c1a590d97e9ddba2d
         eel.loginEvent(userinfo)
 
         login_status = True
@@ -99,7 +98,7 @@ def screenControl():
                         if not login_status:# and frControl == None:
                             print("Motion detected!")
                             eel.wakeEvent()
-                            eel.spawn(turn_on)
+                            turn_on()
                             frControl = eel.spawn(runFacialRecognition)
                             print("screenControl: starting recognition")                 
                         
@@ -107,7 +106,7 @@ def screenControl():
                     
                     timeout_count += 1
                     if login_status:
-                        if timeout_count >= 60:
+                        if timeout_count >= 30:
                             eel.sleepEvent()
                             login_status = False
                             active_user= None
@@ -136,6 +135,7 @@ def stopCreating():
     global disable_timeout
     global active_user
     user=fr.stopCreating()
+    fr.load_face()
     disable_timeout=False
 
     active_user=user
@@ -155,7 +155,7 @@ def updateValues(idc):
     global active_user
     global disable_timeout
     global db
-
+    print(data)
     if not db.id_exists(data[0]):
         print(f"User: {data[0]} not found. Adding")
         db.addUser(data[0])
@@ -166,9 +166,10 @@ def updateValues(idc):
     db.updateUserData(data)
 
     if data[0]==active_user:
-        usdata,_=db.getUserData(data[0])
+        usdata,info=db.getUserData(data[0])
         eel.updateEvent(usdata)
-        updateBrightness(data[8])
+        if info["VANITY"] is not None:
+            light_pwm.ChangeDutyCycle(info["VANITY"])
 def exit_handler():
     GPIO.cleanup()
 

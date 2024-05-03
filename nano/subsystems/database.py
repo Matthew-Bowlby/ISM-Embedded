@@ -67,7 +67,6 @@ class DB:
                 "HEART",
                 "VANITY",
                 "INDOORTEMP",
-                "LASTUPDATE",
             ]
             self.link = [0, 1, 3, 4, 5, 6, 7, 8, 9]
         except sqlite3.Error as error:
@@ -95,26 +94,26 @@ class DB:
         sqliteConnector.close()
         json_data = []
         row_data = {}
-        for i in range(len(columns)):
-            row_data[columns[i]] = out[i]
-        json_data.append(row_data)
-        return json.dumps(json_data),row_data
+        print(columns)
+        print(out)
+        if out is not None:
+            for i in range(len(columns)):
+                row_data[columns[i]] = out[i]
+            json_data.append(row_data)
+            return json.dumps(json_data),row_data
 
     def updateUserData(self, updates):
         # updates = (name, temp, van)
         sqliteConnector = sqlite3.connect("user_data.db")
         cursor = sqliteConnector.cursor()
         for field in range(1, len(self.fields)):
-            newfield = field
-            if field == (len(self.fields) - 1):
-                continue
             #    cursor.execute(
             #   f"UPDATE user_data SET {self.fields[field]}='{time.time()}' WHERE NAME='{updates[0]}';"
             # )
-            if updates[newfield] == None:
+            if updates[field] == None:
                 continue
             cursor.execute(
-                f"UPDATE user_data SET {self.fields[field]}='{updates[newfield]}' WHERE NAME='{updates[0]}';"
+                f"UPDATE user_data SET {self.fields[field]}='{updates[field]}' WHERE NAME='{updates[0]}';"
             )
         sqliteConnector.commit()
         sqliteConnector.close()

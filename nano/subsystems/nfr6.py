@@ -75,7 +75,7 @@ class FaceRecognition():
                 break
         # cv2.imshow("Face",img)
         # cv2.waitKey(1)
-        if(self.sampleNum>50):
+        if(self.sampleNum>10):
             return None
         # Convert the frame to base64
         retval, buffer = cv2.imencode('.jpg', frame)
@@ -85,15 +85,20 @@ class FaceRecognition():
     
     def stop_recognition(self):
         self.running=False
-        # self.cap.release()
+        if self.cap != None:
+            self.cap.release()
 
     def run_recognition(self):
-        if self.running:
-           return None
+        #if self.running:
+           #return None
         start = time.time()
+        print('1')
         self.cap = cv2.VideoCapture(0)
+        print('2')
         self.running=True
+        print('3')
         self.detector.setInputSize((int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))))
+        print('4')
         user = None
         while self.running and (time.time()-start) < 10:
             print("Looking...")
@@ -112,12 +117,15 @@ class FaceRecognition():
                         scores.append(cosine_score)
                     cosine_sim = .363
 
-                    if max(scores) >= cosine_sim:
-                        user = np.argmax(scores)
-                        print(f"User recognizer {user}")
-                        self.running=False
-                        self.cap.release()
-                        return self.features_label[user]
+                    try:
+                        if max(scores) >= cosine_sim:
+                            user = np.argmax(scores)
+                            print(f"User recognizer {user}")
+                            self.running=False
+                            self.cap.release()
+                            return self.features_label[user]
+                    except:
+                        return None
         self.running = False
         self.cap.release()
         return None
