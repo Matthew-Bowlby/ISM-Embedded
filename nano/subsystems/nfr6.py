@@ -7,7 +7,7 @@ from PIL import Image
 
 
 class FaceRecognition:
-
+#initialize the detector with the input image of the camera and the model of detecting faces in frame
     def __init__(self):
         self.where = "/home/ism/ISM-Embedded/nano/"
         self.detector = cv2.FaceDetectorYN.create(
@@ -18,21 +18,23 @@ class FaceRecognition:
             0.3,
             5000,
         )
+        #initialize the face encoder with a prebuilt model
         self.recognizer = cv2.FaceRecognizerSF.create(
             self.where + "models/face_recognition_sface_2021dec.onnx", ""
         )
-        self.cap = None
-        self.sampleNum = 0
-        self.features = []
-        self.features_label = []
+        self.cap = None #reference to camera
+        self.sampleNum = 0 #num photos
+        self.features = [] #facial encoding features
+        self.features_label = [] # holds labels based of user name
         self.running = False
         self.load_face()
         self.user_creation = None
 
     def load_face(self):
-        path = self.where + "img"
+        path = self.where + "img" #file path to photo
         self.features = []
         self.features_label = []
+        #searching through the array of reference photos and gathering the encoding from those
         imagepaths = [os.path.join(path, f) for f in os.listdir(path)]
         for imagepath in imagepaths:
             if ".DS_Store" in imagepath:
@@ -108,10 +110,10 @@ class FaceRecognition:
 
         start = time.time()
 
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(0) #webcam
 
         self.running = True
-
+# get the size of the webcam for comparison for reference photos
         self.detector.setInputSize(
             (
                 int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
@@ -120,6 +122,7 @@ class FaceRecognition:
         )
 
         user = None
+        # compare the current frame with the reference photos and score how close it aligns to authenticate
         while self.running and (time.time() - start) < 10:
             has_frame, frame = self.cap.read()
             if not has_frame:
