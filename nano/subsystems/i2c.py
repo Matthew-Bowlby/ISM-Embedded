@@ -8,7 +8,7 @@ class I2C():
     def __init__(self,recieve_sig,eel):
         self.I2C_ADDR = 0x18
         self.receive_sig = recieve_sig # change as needed
-        self.info = ["Name", "TempF", "Condi", "UVInd", "Humid", "CaloB", "StepC", "DistW", "Heart","Brightness", "Heart"]
+        self.info = ["Name", "TempF", "Condi", "UVInd", "Humid", "CaloB", "StepC", "DistW", "Heart","Bright", "Temp", "Heart"]
         if eel == None:
             self.eel = time
         else:
@@ -31,7 +31,6 @@ class I2C():
                 msg = i2c_msg.write(self.I2C_ADDR, BytesToSend)
                 I2Cbus.i2c_rdwr(msg)
                 self.eel.sleep(0.1)
-                #print("hello")
                 try:
                     #data = I2Cbus.read_i2c_block_data(self.I2C_ADDR, 0x00, 32)
                     msg = i2c_msg.read(self.I2C_ADDR, 32)

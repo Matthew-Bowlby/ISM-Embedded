@@ -7,6 +7,7 @@ from PIL import Image
 class FaceRecognition():
 
     def __init__(self):
+        print(cv2.__version__)
         self.where ='/home/ism/ISM-Embedded/nano/'
         self.detector = cv2.FaceDetectorYN.create(self.where+"models/face_detection_yunet_2023mar.onnx","",(1280,960),.9,.3,5000)
         self.recognizer = cv2.FaceRecognizerSF.create(self.where+"models/face_recognition_sface_2021dec.onnx","")

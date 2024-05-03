@@ -22,6 +22,7 @@ class DB:
             STEPS INTEGER,
             DISTANCE_WALKED REAL,
             HEART REAL,
+            INDOORTEMP REAL,
             LASTUPDATE REAL
 
             );"""
@@ -65,6 +66,7 @@ class DB:
                 "DISTANCE_WALKED",
                 "HEART",
                 "VANITY",
+                "INDOORTEMP",
                 "LASTUPDATE",
             ]
             self.link = [0, 1, 3, 4, 5, 6, 7, 8, 9]

@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import eel
 import RPi.GPIO as GPIO
 import sys
@@ -7,6 +8,7 @@ import numpy as np
 from subsystems.database import DB
 from subsystems.nfr6 import FaceRecognition
 from subsystems.i2c import I2C
+
 light_pin = 32
 motion_pin = 40
 recieve_sig=21
@@ -45,7 +47,7 @@ def runFacialRecognition():
     if user != None:
         active_user=user
         userinfo,info=db.getUserData(user)
-        light_pwm.ChangeDutyCycle(info["VANITY"])
+        #light_pwm.ChangeDutyCycle(info["VANITY"])
         eel.loginEvent(userinfo)
 
         login_status = True
@@ -154,6 +156,7 @@ def updateValues(idc):
         print(f"User: {data[0]} not found. Adding")
         db.addUser(data[0])
         disable_timeout=True
+        fr.stop_recognition()
         fr.startImageTaking(data[0])
         eel.startPicTaking()
     db.updateUserData(data)
@@ -164,6 +167,8 @@ def updateValues(idc):
         updateBrightness(data[8])
 def exit_handler():
     GPIO.cleanup()
+
+
 
 if __name__ == "__main__":
     atexit.register(exit_handler)
