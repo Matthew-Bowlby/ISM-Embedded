@@ -38,19 +38,21 @@ class FaceRecognition():
                 self.features_label.append(os.path.split(imagepath)[-1].split('.')[0])
 
 
-
+    # start grabbing images for user "name"
     def startImageTaking(self,name):
         print("starting cam")
         self.cap=cv2.VideoCapture(0)
         self.running=True
         self.user_creation=name
         self.sampleNum=0
+    # close the camera 
     def stopCreating(self):
         self.cap.release()
         user = self.user_creation
         self.user_creation=None
         #self.load_face()
         return user
+    # find faces and save them to the device, return camera image with box around detected face
     def creatingImages(self):
         print("req image")
         if self.user_creation == None:
@@ -70,19 +72,19 @@ class FaceRecognition():
                 print("face found",x,y,w,h)
                 cv2.imwrite(self.where+f"img/{user}."+str(self.sampleNum)+".jpg",frame[y:y+h,x:x+w])
                 cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
-                #cv2.waitKey(100)
                 print(self.sampleNum)
                 break
-        # cv2.imshow("Face",img)
-        # cv2.waitKey(1)
+       # return None once we saved enough images
         if(self.sampleNum>10):
             return None
-        # Convert the frame to base64
+        
+        # Convert the frame to base64 to display on frontend
         retval, buffer = cv2.imencode('.jpg', frame)
         jpg_as_text = base64.b64encode(buffer).decode('utf-8')
 
         return "data:image/jpeg;base64," + jpg_as_text
     
+    # Turn off the camera
     def stop_recognition(self):
         self.running=False
         if self.cap != None:
