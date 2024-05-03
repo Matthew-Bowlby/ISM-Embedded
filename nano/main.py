@@ -51,7 +51,6 @@ i2c = I2C(recieve_sig,eel)
 def runFacialRecognition():
     global login_status
     global active_user
-    print("running fr")
     user=fr.run_recognition()
     if user != None:
         active_user=user
@@ -99,15 +98,12 @@ def screenControl():
             if not disable_timeout:
                 val = GPIO.input(motion_pin)
                 if val != prev_val:
-                    print(val)
                     if val == GPIO.HIGH:
                         timeout_count = 0
-                        if not login_status:# and frControl == None:
-                            print("Motion detected!")
+                        if not login_status:
                             eel.wakeEvent()
                             turn_on()
-                            frControl = eel.spawn(runFacialRecognition)
-                            print("screenControl: starting recognition")                 
+                            eel.spawn(runFacialRecognition)
                         
                 elif val == GPIO.LOW:
                     
@@ -120,7 +116,6 @@ def screenControl():
                             timeout_count = 0
                             eel.spawn(turn_off)
                     else:
-                        print(timeout_count)
                         if timeout_count >= 10:
                             eel.sleepEvent()
                             eel.spawn(turn_off)
@@ -134,7 +129,6 @@ def screenControl():
 # Function to stop creating images
 @eel.expose
 def stopCreating():
-    print("stopped taking")
     global disable_timeout
     global active_user
     user=fr.stopCreating()
@@ -156,7 +150,6 @@ def updateValues(idc):
     global db
     # adds user if they dint exist and begin profile creation process
     if not db.id_exists(data[0]):
-        print(f"User: {data[0]} not found. Adding")
         db.addUser(data[0])
         disable_timeout=True
         fr.stop_recognition()
@@ -185,7 +178,6 @@ if __name__ == "__main__":
 
     # start i2c data handling thread if recieved a signal to request for data
     GPIO.add_event_detect(recieve_sig, GPIO.RISING, callback=updateValues)
-    print("starting")
 
     # starting program
     eel.start("index.html", cmdline_args=["--kiosk"])

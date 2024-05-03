@@ -60,8 +60,7 @@ class DB:
                 "INDOORTEMP",
             ]
         except sqlite3.Error as error:
-            print(f"Error occured: {error}")
-            sys.exit(1)
+            pass
 
     # adds a user to database
     def addUser(self, name):
@@ -84,10 +83,9 @@ class DB:
         out = cnt.fetchone()
 
         sqliteConnector.close()
+        #creating json    
         json_data = []
         row_data = {}
-        print(columns)
-        print(out)
         if out is not None:
             for i in range(len(columns)):
                 row_data[columns[i]] = out[i]
