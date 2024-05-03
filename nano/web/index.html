@@ -132,6 +132,19 @@
             display: block;
         }
 
+        #temperature {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 28px;
+            /* adjust font size as needed */
+        }
+
+        #indtemp {
+            display: inline; /* Display in one line */
+        }
+
         /* Centered content within the overlay */
         #camera-overlay-content {
             position: absolute;
@@ -158,14 +171,14 @@
         </div>
     </div>
 
-    <div id="sleep-overlay" class="show">
+    <div id="sleep-overlay" class="">
         <div id="sleep-overlay-content">
             <div class="row">
             </div>
         </div>
     </div>
 
-    <div id="camera-overlay"">
+    <div id="camera-overlay">
         <div id="camera-overlay-content">
             <h1 class="display-1">Look at the Camera. Creating Facial Profile</h1>
             <img id="live-feed" src="">
@@ -173,6 +186,9 @@
             </div> -->
         </div>
     </div>
+    <div id="temperature">Temperature: <span id="indtemp">25</span>°</div>
+    </div>
+    
 
     <div class="container-fluid pt-3">
         <h1 class="display-1" id="greeting_header">Hello, FN</h1>

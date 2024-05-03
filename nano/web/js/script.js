@@ -85,6 +85,7 @@ function loginEvent(userData) {
 function updateHTML(dataOBJ){
     document.getElementById('greeting_header').innerText = "Welcome, "+ dataOBJ[0].NAME;
     document.getElementById('temp').innerText = dataOBJ[0].TEMP+"°";
+    document.getElementById('indtemp').innerText = dataOBJ[0].INDOORTEMP+"°";
     document.getElementById('cond').innerText = dataOBJ[0].CONDITION;
     document.getElementById('hum').innerText = dataOBJ[0].HUMIDITY;
     document.getElementById('uv').innerText = dataOBJ[0].UV_INDEX;
