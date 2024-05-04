@@ -5,7 +5,10 @@ This codebase contains two main folders: nano and server_code
 
 ## nano
 
-- The nano folder has a main.py file, requirements file, unlock file, subsystems folder, web folder, and models folder. The requirements file includes the python libraries needed for the project. The unlock file is commands that are needed to unlock the pwm on the Nano. That is essential for running the main.py file which integrates the control for the display, facial recognition, i2c, database, and LED control.
+- The nano folder has a main.py file, requirements file, unlock file, subsystems folder, web folder, and models folder. 
+ - The requirements file includes the python libraries needed for the project. 
+ - The unlock file is commands that are needed to unlock the pwm on the Nano. 
+ - The main.py file which integrates the control for the display, facial recognition, i2c, database, and LED control.
 - The subsystems folder contains files for the facial recognition, i2c, and database.  These files describe the functionality of each module that is integrated into main.py
 - The web folder contains all of the code for the display control.
 - The models folder contains the facial recognition models required.
