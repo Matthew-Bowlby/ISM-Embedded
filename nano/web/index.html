@@ -132,6 +132,20 @@
             display: block;
         }
 
+        #temperature {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 28px;
+            /* adjust font size as needed */
+        }
+
+        #indtemp {
+            display: inline;
+            /* Display in one line */
+        }
+
         /* Centered content within the overlay */
         #camera-overlay-content {
             position: absolute;
@@ -141,13 +155,12 @@
             color: white;
             text-align: center;
         }
-
     </style>
 
 </head>
 
 <body>
-    <!-- <body class="full-height"> -->
+    <!-- Screen saver Overlay -->
     <div id="overlay">
         <div id="overlay-content">
             <div class="row">
@@ -157,26 +170,29 @@
             </div>
         </div>
     </div>
-
+    <!-- Sleep Overlay -->
     <div id="sleep-overlay" class="show">
         <div id="sleep-overlay-content">
             <div class="row">
             </div>
         </div>
     </div>
-
-    <div id="camera-overlay"">
+    <!-- Camera Overlay -->
+    <div id="camera-overlay">
         <div id="camera-overlay-content">
             <h1 class="display-1">Look at the Camera. Creating Facial Profile</h1>
             <img id="live-feed" src="">
-            <!-- <div class="row">
-            </div> -->
         </div>
     </div>
-
-    <div class="container-fluid pt-3">
-        <h1 class="display-1" id="greeting_header">Hello, FN</h1>
+    <!-- Temperature display -->
+    <div id="temperature">Temperature: <span id="indtemp">25</span>°</div>
     </div>
+
+    <!-- Greeting -->
+    <div class="container-fluid pt-3">
+        <h1 class="display-1" id="greeting_header">Hello, User</h1>
+    </div>
+    <!-- Main content container -->
     <div id="data_rows" class="container-fluid pt-5">
         <br>
         <div class="row">
@@ -191,31 +207,30 @@
                             <div class="row row-cols-2">
                                 <div class="col  px-5 py-2 text-center">
                                     <h2 class="text-center cardheaders">Temp</h2>
-                                    <p id="temp" class="card-text">TYPESHIT</p>
+                                    <p id="temp" class="card-text">data</p>
                                 </div>
                                 <div class="col  px-5 py-2 text-center">
                                     <h2 class="text-center cardheaders">Condition</h2>
-                                    <p id="cond" class="card-text">TYPESHIT</p>
+                                    <p id="cond" class="card-text">data</p>
                                 </div>
                                 <div class="col  px-5 py-2 text-center">
                                     <h2 class="text-center cardheaders">Humidity</h2>
-                                    <p id="hum" class="card-text">TYPESHIT</p>
+                                    <p id="hum" class="card-text">data</p>
                                 </div>
                                 <div class="col   px-5 py-2 text-center">
                                     <h2 class="text-center cardheaders">UV Index</h2>
-                                    <p id="uv" class="card-text">TYPESHIT</p>
+                                    <p id="uv" class="card-text">data</p>
                                 </div>
                             </div>
                         </div>
-                        <!-- <p class="card-text">10000 Steps</p>
-                        <p class="card-text">Burned: 100kcal</p> -->
+
                     </div>
                 </div>
 
             </div>
             <div class="col-lg-6">
                 <div class="container">
-                    <!-- <h1 class="display-3 text-center">Upcoming Events</h1> -->
+
                 </div>
             </div>
             <div class="col-lg-3 align-items-center justify-content-center">
@@ -229,40 +244,28 @@
                             <div class="row row-cols-2">
                                 <div class="col  px-5 py-2 text-center">
                                     <h2 class="text-center cardheaders">HR</h2>
-                                    <p id="hr" class="card-text">TYPESHIT</p>
+                                    <p id="hr" class="card-text">data</p>
                                 </div>
                                 <div class="col  px-5 py-2 text-center">
                                     <h2 class="text-center cardheaders">Calories</h2>
-                                    <p id="cal" class="card-text">TYPESHIT</p>
+                                    <p id="cal" class="card-text">data</p>
                                 </div>
                                 <div class="col  px-5 py-2 text-center">
                                     <h2 class="text-center cardheaders">Steps</h2>
-                                    <p id="steps" class="card-text">TYPESHIT</p>
+                                    <p id="steps" class="card-text">data</p>
                                 </div>
                                 <div class="col   px-5 py-2 text-center">
                                     <h2 class="text-center cardheaders">Distance</h2>
-                                    <p id="dist" class="card-text">TYPESHIT</p>
+                                    <p id="dist" class="card-text">data</p>
                                 </div>
                             </div>
                         </div>
-                        <!-- <p class="card-text">10000 Steps</p>
-                        <p class="card-text">Burned: 100kcal</p> -->
                     </div>
                 </div>
 
             </div>
         </div>
-
-
     </div>
-
-    <!-- <div class="d-flex justify-content-center align-items-center" style="height:100%;">
-        <h1 id="time">00:00</h1>
-         <button type="button" class="btn btn-info">Button</button> 
-    </div> -->
-
-
-
 
     <script src="eel.js"></script>
     <script src="jquery/jquery-3.7.1.js"></script>

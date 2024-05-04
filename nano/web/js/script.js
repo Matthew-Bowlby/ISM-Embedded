@@ -1,77 +1,59 @@
-// function getDate() {
-//     var now = new Date();
-//     var hours = now.getHours() % 12 || 12;
-//     var time = hours + ':' + now.getMinutes() + ":" + now.getSeconds();
-//     document.getElementById('time').innerHTML = time;
-//     setTimeout(getDate, 500);
-// }
-// ;
-// getDate();
-// eel.expose(hideTime)
-// function hideTime() {
-//     // $("#time").hide()
-// }
-
-
+// Flag to control whether to continue updating the UI with camera images
 let shouldUpdate = true;
 
+// Function to start the process of taking pictures using the camera overlay
 eel.expose(startPicTaking)
 function startPicTaking(){
+    shouldUpdate = true;
+     // Display the camera overlay and remove other overlays
     var timeoverlay = document.getElementById('overlay');
     var sleepoverlay = document.getElementById('sleep-overlay');
     var camoverlay = document.getElementById('camera-overlay');
     sleepoverlay.classList.remove('show');
     timeoverlay.classList.remove('show');
     camoverlay.classList.add('show');
+    // Begin updating the camera feed
     updateImage();
 }
+// Function to stop picture taking and revert to the sleep overlay
 function stopPicTaking(){
     var timeoverlay = document.getElementById('overlay');
     var sleepoverlay = document.getElementById('sleep-overlay');
     var camoverlay = document.getElementById('camera-overlay');
+    // Hide the camera overlay and display the sleep overlay
     sleepoverlay.classList.add('show');
     timeoverlay.classList.remove('show');
     camoverlay.classList.remove('show');
-    eel.stopCreating()
+    // Send signal to Python backend to stop sending pictures
+    eel.stopCreating() 
 }
+// Function to update the UI with camera images
 async function updateImage() {
     if (!shouldUpdate) {
         return;
     }
+    // Request image from the backend
     const image = await eel.get_image()();
     if (!image) {
-        // Stop updates if image is None
+        // Stop updates if all required pictures have been taken
         shouldUpdate = false;
         stopPicTaking();
         return;
     }
+    // Function to stop updating the UI with camera images
     document.getElementById('live-feed').src = image;
-    setTimeout(updateImage, 10); // Request image every second
+    // Request the next image after a short delay
+    setTimeout(updateImage, 10); 
 }
 
+// python forcing display to stop updating
 eel.expose(stopUpdates)
 function stopUpdates() {
     shouldUpdate = false;
 }
 
 
-// Function to toggle the overlay
-function toggleOverlay() {
-    var overlay = document.getElementById('overlay');
-    overlay.classList.toggle('show');
-}
-
-// Close the overlay when clicking anywhere on it
-document.getElementById('overlay').addEventListener('click', function (event) {
-    if (event.target === this) {
-        sleepEvent();
-    }
-});
-document.getElementById('sleep-overlay').addEventListener('click', function (event) {
-    if (event.target === this) {
-        wakeEvent();
-    }
-});
+// Function triggered upon user login, updating the UI with user data
 eel.expose(loginEvent)
 function loginEvent(userData) {
     var timeoverlay = document.getElementById('overlay');
@@ -82,9 +64,12 @@ function loginEvent(userData) {
     updateHTML(obj)
     
 }
+
+// Function to update the UI with user data
 function updateHTML(dataOBJ){
     document.getElementById('greeting_header').innerText = "Welcome, "+ dataOBJ[0].NAME;
     document.getElementById('temp').innerText = dataOBJ[0].TEMP+"°";
+    document.getElementById('indtemp').innerText = dataOBJ[0].INDOORTEMP;
     document.getElementById('cond').innerText = dataOBJ[0].CONDITION;
     document.getElementById('hum').innerText = dataOBJ[0].HUMIDITY;
     document.getElementById('uv').innerText = dataOBJ[0].UV_INDEX;
@@ -95,7 +80,7 @@ function updateHTML(dataOBJ){
     document.getElementById('dist').innerText = dataOBJ[0].DISTANCE_WALKED;
 }
 
-
+// Function triggered to update the UI with received user data
 eel.expose(updateEvent)
 function updateEvent(userData) {
     const obj = JSON.parse(userData)
@@ -103,6 +88,7 @@ function updateEvent(userData) {
     
 }
 
+// Function triggered to display a sleep overlay
 eel.expose(sleepEvent)
 function sleepEvent() {
     var timeoverlay = document.getElementById('overlay');
@@ -115,7 +101,7 @@ function sleepEvent() {
 
 
 }
-
+// Function triggered to display a screensaver overlay
 eel.expose(wakeEvent)
 function wakeEvent() {
     var timeoverlay = document.getElementById('overlay');
