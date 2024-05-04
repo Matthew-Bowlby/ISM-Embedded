@@ -21,13 +21,12 @@ BLEAdvertising *pAdv;
 BLEService *pService;
 int num_devices = 0;
 using json = nlohmann::json;
-string tag;
-string data;
-json current_user;
-string request;
-int sensorValue;
-unsigned long time2;
-bool b = false;
+string tag;                       // variable for accessing json
+string data;                      // variable for storing data to json
+json current_user;                // json for storing user data
+string request;                   // request string for i2c
+int sensorValue;                  // int for reading analog output for temp sensor
+unsigned long time2;              
 
 // using namespace CryptoPP;
 void requestEvents();
@@ -125,13 +124,15 @@ class MyCallbacks : public BLECharacteristicCallbacks
     uint8_t in[100];
     
 
-  
+    // change encrypted hex string to byte array
     hexStringToByteArray(value, in);
   
+    // decrypt
     AES_init_ctx_iv(&ctx, key, iv);
 
     AES_CBC_decrypt_buffer(&ctx, in, 64);
 
+    // convert byte array plaintext back to string
     value1 = byteArrayToString(in, 64);
 
     if (!value1.empty())
@@ -282,8 +283,11 @@ void requestEvents()
   string data2;
   char byte;
 
+  // access data stored in json to send over i2c
   data2 = current_user[request];
 
+  // Send data string across i2c data line
+  // data is of format: [data_string_size, data_bytes]
   Wire.write((char)data2.length());
   for (int i = 0; i < data2.length(); i++)
   {
@@ -297,16 +301,16 @@ void requestEvents()
     current_user[request] = "";
   }
 }
+
 void receiveEvents(int num)
 {
-
   char c;
-  request.clear();
 
+  // Clears request and adds request by byte onto request string
+  request.clear();
 
   while (Wire.available())
   {
-
     c = Wire.read();
     if (c != 0)
     {
