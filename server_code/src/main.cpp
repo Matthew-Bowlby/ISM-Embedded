@@ -4,18 +4,14 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "../include/json.hpp"
-#include <unordered_map>
 #include <string>
-#include <iostream>
 #include <cstdlib>
-//#include <../include/aes.h>
-//#include <../include/modes.h>
-//#include <../include/filters.h>
+#include "../include/aes.hpp"
 #define I2C_ADDR 0x18
 
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
-//using namespace CryptoPP;
+// using namespace CryptoPP;
 using namespace std;
 #define SERVICE_UUID "c0fe"
 #define CHARACTERISTIC_UUID "3dee"
@@ -33,22 +29,24 @@ int sensorValue;
 unsigned long time2;
 bool b = false;
 
+// using namespace CryptoPP;
 void requestEvents();
 void receiveEvents(int);
+// Check the Json for any available data to send by checking if it has set to any but empty
+// The one exception is the name since the facial recognition database is base on username alone
 void check_json()
 {
   int i = 0;
   for (json::iterator it = current_user.begin(); it != current_user.end(); ++it)
   {
-    if (it.value() != "" && it.key() != "Name")
+    if (it.value() != "" && it.key() != "Name" && it.key() != "Temp" )
     {
       i++;
     }
     if (i != 0)
     {
-      // Serial.printf("sent high signal\n");
-      //  Serial.printf("test here %s\n", test1.c_str());
       digitalWrite(27, HIGH);
+      digitalWrite(27, LOW);
     }
     else
     {
@@ -60,7 +58,7 @@ json createUser(string name)
 {
   // create empty json and store username
   json j;
-  j["Name"] = name;
+  j["Name"] = name; // default user name User1
   j["TempF"] = "";
   j["Condi"] = "";
   j["UVInd"] = "";
@@ -70,10 +68,12 @@ json createUser(string name)
   j["DistW"] = "";
   j["Heart"] = "";
   j["Bright"] = "";
+  j["Temp"] = "";
   return j;
 }
 void reset_json()
 {
+  // Reset all values only if no user is connected
   current_user["Name"] = "";
   current_user["TempF"] = "";
   current_user["Condi"] = "";
@@ -84,181 +84,122 @@ void reset_json()
   current_user["DistW"] = "";
   current_user["Heart"] = "";
   current_user["Bright"] = "";
-}/*
-string decryptAES(string value)
-{
-  string decryptedValue;
-  try
-  {
-    string decrypted;
-    string encryptedData = value;
-
-    byte key[CryptoPP::AES::DEFAULT_KEYLENGTH] = {'\x18', '\xC3', '\xD5', '\x31', '\xF1', '\x06', '\x6F', '\xBD'}; // Example key
-    byte iv[CryptoPP::AES::BLOCKSIZE] = {'\xC4', '\xD4', '\xC4', '\x29', '\xA0', '\x46', '\xAD', '\xDD'};          // Example IV
-
-    CBC_Mode<AES>::Decryption aesDecryption(key, sizeof(key), iv);
-    StringSource s(encryptedData, true, new StreamTransformationFilter(aesDecryption, new StringSink(decrypted)));
-
-    decryptedValue = decrypted;
-    return decryptedValue;
-  }
-  catch (const std::exception &e)
-  {
-    std::cerr << "Crypto++ exception: " << e.what() << std::endl;
-    return "err";
-  }
+  current_user["Temp"] = "";
 }
-*/
-/*
-void storeData(json user, string userdata){
-// given a refernece to a user and the data store data
-string test;
-int pos = userdata.find(":");
-tag = userdata.substr(0,pos);
-data = userdata.substr(pos + 1, userdata.length());
-user[tag]= data;
-/*
-Serial.printf("data stored -> ");
- test = tag + data;
-      for (int i = 0; i < test.length(); i++)
-      {
-        Serial.print(test[i]);
-      }
-Serial.printf("end\n");
-} */
-/*
-class Users
+
+// Convert the encrypted AES string to byte array for AES decryption
+void hexStringToByteArray(const std::string &hexString, uint8_t *byteArray)
 {
-public:
-  void printUserData(json user){
-       for (json::iterator it2 = user.begin(); it2 != user.end(); ++it2) {
-
-
-         Serial.printf("%s - %s\n", it2.key(), it2.value());
-    }
-  }
- /* void addUser(json newUser)
+  // Serial.printf("poop999\n");
+   size_t i;
+  size_t length = hexString.length();
+  for (i = 0; i < length; i += 2)
   {
-    // userMap["user1"] = user1;
-    if (find_user(newUser) == NULL)
-    {
-    userMap[newUser["name"]] = newUser;
-    }
-    else
-    {
-      // do not add
-      Serial.print("User already exists\n");
-    }
+    // Extract two characters from the hexadecimal string and convert them to a byte
+    std::string byteString = hexString.substr(i, 2);
+    byteArray[i / 2] = static_cast<uint8_t>(std::stoi(byteString, nullptr, 16));
   }
-  void removeUser(json user)
-  {
-    if (find_user(user) == NULL)
-    {
-      // do not remove
+  
+}
+// Convert the byte array back to string in order to store it into the JSON
+std::string byteArrayToString(const unsigned char* byteArray, size_t length) {
+    string s;
+    for (int i = 0; byteArray[i] != '+'; i++) {
+      s.push_back(byteArray[i]);
     }
-    else
-    {
-      // remove
-    }
-  }
+    return s;
+}
 
-  json find_user(json user)
-  {
-    unordered_map<std::string, json>::iterator it;
-    it = userMap.find(user["name"]);
-    // user found
-    if (it != userMap.end())
-    {
-      return it->second;
-    }
-    else
-    { // user not found
-      return NULL;
-    }
-  }
-
-private:
-  // vector<*json> userList;
-  unordered_map<string, json> userMap;
-};
-
-Users master;
-*/
+// When anything is written from the users phone it is read in a callback in the background
+// This function also simultaneuosly handles the decryption and storage of the information sent
 class MyCallbacks : public BLECharacteristicCallbacks
 {
   void onWrite(BLECharacteristic *pCharacteristic)
   {
+    struct AES_ctx ctx;
     std::string value = pCharacteristic->getValue();
+    string value1;
+    uint8_t key[] = { 49, 56, 67, 51, 68, 53, 51, 49, 70, 49, 48, 54, 54, 70, 66, 68 };
 
-    //value = decryptAES(value);
-   // Serial.printf("Decrypted value\n", );
-    if (value != "err")
+    uint8_t iv[] = { 67, 52, 68, 52, 67, 52, 50, 57, 65, 48, 52, 54, 65, 68, 68, 68 };
+    uint8_t in[100];
+    //uint8_t out[];
+
+  
+ //   Serial.printf("testing value %s\n", value.c_str());
+    hexStringToByteArray(value, in);
+  //   Serial.printf("testing -value %s\n", in);
+    AES_init_ctx_iv(&ctx, key, iv);
+  //    Serial.printf("poop2\n");
+    AES_CBC_decrypt_buffer(&ctx, in, 64);
+  //    Serial.printf("testing -value %s\n",in);
+    value1 = byteArrayToString(in, 64);
+    //  Serial.printf("poop4\n");
+  //  Serial.printf("testing postvalue %s\n", value1.c_str());
+    if (!value1.empty())
     {
-      if (value.length() > 0)
+      if (value1.length() > 0)
       {
-        // Serial.print("*********");
-        // Serial.print("New value: ");
-        for (int i = 0; i < value.length(); i++)
+        for (int i = 0; i < value1.length(); i++)
         {
-          Serial.print(value[i]);
+          Serial.print(value1[i]);
         }
 
         Serial.println();
-        // Serial.println("*********");
       }
-      if (value == "Connected")
+      if (value1 == "Connected")
       {
-
         Serial.printf("created user\n");
       }
-      else if (value == "Disconnected")
+      else if (value1 == "Disconnected")
       {
-        // current_user = createUser("User1");
+        // notify disconnection and reset the json so that it does not send unidentified data
         Serial.printf("user left\n");
         reset_json();
         digitalWrite(27, LOW);
       }
       else
       {
-
         string test, test2;
         float dumb;
         int dumb3;
-        int pos = value.find(":");
-        tag = value.substr(0, pos);
-        data = value.substr(pos + 2, value.length());
+        // parse the decrypted data into tag and data
+        int pos = value1.find(":");
+        tag = value1.substr(0, pos);
+        data = value1.substr(pos + 2, value1.length());
 
+        // changes the username but keeps reference to the same data 
         if (tag == "NewName")
         {
           tag = "Name";
         }
         if (tag == "Heart")
         {
-
+          // truncates the float representation of the heartrate
           dumb = stof(data);
           dumb3 = (int)dumb;
           data = to_string(dumb3);
-          Serial.printf("test heart rate %s\n", data.c_str());
+       //   Serial.printf("test heart rate %s\n", data.c_str());
         }
         current_user[tag] = data;
         test = current_user[tag];
 
-        Serial.printf("Test Data -%s-, -%s- \n", test.c_str(), tag.c_str());
-        //  test = current_user[tag];
-        //  Serial.printf(" ---Test This %s- %s---\n", tag.c_str(), test.c_str());
+      //  Serial.printf("Test Data -%s-, -%s- \n", test.c_str(), tag.c_str());
       }
     }
-    else{
-      Serial.printf("AES FAILED\n");
+    else
+    {
+     // Serial.printf("AES decryption failed\n");
     }
   }
 };
 
+// Set up bluetooth and all of the peripheral components 
 void setup()
 {
   // const char* sensor_program_command = "/path/to/your/sensor_program";
   Serial.begin(115200);
-  current_user = createUser("User1");
+  current_user = createUser("User1"); // sets up default user with no data
   pinMode(34, INPUT);
   pinMode(32, OUTPUT);
   pinMode(27, OUTPUT);
@@ -266,10 +207,12 @@ void setup()
   digitalWrite(32, HIGH);
   digitalWrite(27, LOW);
 
-  BLEDevice::init("ESP32-BLE-Server");
+  BLEDevice::init("ESP32-BLE-Server"); // how the device will appear by name 
   pServ = BLEDevice::createServer();
   pService = pServ->createService(SERVICE_UUID);
 
+
+  // set up the server and start advertising its services and connection requirements via the characteristic ID
   pChar = pService->createCharacteristic(
       CHARACTERISTIC_UUID,
       BLECharacteristic::PROPERTY_READ |
@@ -291,31 +234,19 @@ void setup()
 
 void loop()
 {
-  string test1;
-
-  test1 = current_user["Heart"];
-  check_json();
-  // if (test1 != "")
-  // {
-  //   Serial.printf("DATA PIN HIGH\n");
-  //   // Serial.printf("test here %s\n", test1.c_str());
-  //   digitalWrite(27, HIGH);
-  // }
-  // else
-  // {
-
-  //   digitalWrite(27, LOW);
-  // }
+  check_json(); // check if any data is to be sent
 
   delay(1000);
   num_devices = pServ->getConnectedCount();
-  // Serial.printf("%d\n", num_devices);
+
+  // reset and readvertise services if someone disconnects
   if (num_devices == 0)
   {
     pAdv->stop();
     pAdv->start();
   }
 
+  // Send signal to nano if motion is detected to activate its functions
   if (digitalRead(34) == HIGH)
   {
     Serial.printf("-- %lu -- Motion Deteced!\n ", (millis() / 1000));
@@ -323,43 +254,48 @@ void loop()
   }
   else
   {
+    // other wise no one is present so do nothing
     digitalWrite(32, LOW);
-    // Serial.printf("------\n");
+
   }
   time2 = millis();
   time2 = time2 / 1000;
 
+  // get value from temp sensor
   sensorValue = analogRead(25);
 
   // Convert the analog value to voltage (assuming 3.3V reference)
   float voltage = sensorValue * (3.3 / 4095.0);
 
   // Convert voltage to temperature using LM35 formula (10mV per degree F)
-  float temperatureF = voltage * 100.0; // 10mV per degree Celsius
+  float temperatureC = voltage / .01; // 10mV per degree Celsius
                                         // Serial.printf("RoomTemp - %f\n");
                                         //     if (temperatureF != 0) Serial.printf("RoomTemp - %f\n");
+  // Send the ambient temp reading as long as a user is connected
+  temperatureC += 10;
+  if (current_user["Name"] != ""){ 
+    current_user["Temp"] = to_string(temperatureC);
+ 
+  }
 }
 
 void requestEvents()
 {
 
   string data2;
-  float test;
-  int test1;
   char byte;
-  Serial.printf("REQUEST\n");
+
   data2 = current_user[request];
 
-  Serial.printf("msg len %d\n", data2.length());
-  Serial.printf("msg- %s\n", data2.c_str());
   Wire.write((char)data2.length());
   for (int i = 0; i < data2.length(); i++)
   {
-    Serial.printf(" -%d-", i);
+
     Wire.write(data2[i]);
   }
-  Serial.printf("\n");
-  if (request != "Name")
+  // since the name is the key to the data base nano side we want to retain the name for data updates.
+  // since the temp is updated constantly there is no need to reset
+  if (request != "Name" && request != "Temp")
   {
     current_user[request] = "";
   }
@@ -369,7 +305,7 @@ void receiveEvents(int num)
 
   char c;
   request.clear();
-  Serial.printf("RECIEVE\n");
+
 
   while (Wire.available())
   {
@@ -378,8 +314,8 @@ void receiveEvents(int num)
     if (c != 0)
     {
       request.push_back(c);
-      //  Serial.printf("printing char  %d\n", c);
+
     }
   }
-  Serial.printf("STRING - %s\n", request.c_str());
+ 
 }
