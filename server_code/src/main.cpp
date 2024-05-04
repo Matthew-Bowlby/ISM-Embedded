@@ -90,7 +90,7 @@ void reset_json()
 // Convert the encrypted AES string to byte array for AES decryption
 void hexStringToByteArray(const std::string &hexString, uint8_t *byteArray)
 {
-  // Serial.printf("poop999\n");
+
    size_t i;
   size_t length = hexString.length();
   for (i = 0; i < length; i += 2)
@@ -123,19 +123,17 @@ class MyCallbacks : public BLECharacteristicCallbacks
 
     uint8_t iv[] = { 67, 52, 68, 52, 67, 52, 50, 57, 65, 48, 52, 54, 65, 68, 68, 68 };
     uint8_t in[100];
-    //uint8_t out[];
+    
 
   
- //   Serial.printf("testing value %s\n", value.c_str());
     hexStringToByteArray(value, in);
-  //   Serial.printf("testing -value %s\n", in);
+  
     AES_init_ctx_iv(&ctx, key, iv);
-  //    Serial.printf("poop2\n");
+
     AES_CBC_decrypt_buffer(&ctx, in, 64);
-  //    Serial.printf("testing -value %s\n",in);
+
     value1 = byteArrayToString(in, 64);
-    //  Serial.printf("poop4\n");
-  //  Serial.printf("testing postvalue %s\n", value1.c_str());
+
     if (!value1.empty())
     {
       if (value1.length() > 0)
@@ -179,17 +177,17 @@ class MyCallbacks : public BLECharacteristicCallbacks
           dumb = stof(data);
           dumb3 = (int)dumb;
           data = to_string(dumb3);
-       //   Serial.printf("test heart rate %s\n", data.c_str());
+     
         }
         current_user[tag] = data;
         test = current_user[tag];
 
-      //  Serial.printf("Test Data -%s-, -%s- \n", test.c_str(), tag.c_str());
+     
       }
     }
     else
     {
-     // Serial.printf("AES decryption failed\n");
+     // do nothing
     }
   }
 };
@@ -269,8 +267,7 @@ void loop()
 
   // Convert voltage to temperature using LM35 formula (10mV per degree F)
   float temperatureC = voltage / .01; // 10mV per degree Celsius
-                                        // Serial.printf("RoomTemp - %f\n");
-                                        //     if (temperatureF != 0) Serial.printf("RoomTemp - %f\n");
+                                   
   // Send the ambient temp reading as long as a user is connected
   temperatureC += 10;
   if (current_user["Name"] != ""){ 
